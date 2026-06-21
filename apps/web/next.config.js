@@ -1,7 +1,9 @@
 import { withSentryConfig } from "@sentry/nextjs";
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  turbopack: {},
+};
 
 export default withSentryConfig(nextConfig, {
   org: "your-sentry-org",

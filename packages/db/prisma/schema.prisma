@@ -21,6 +21,7 @@ model User {
   accounts      Account[]
   members       Member[]
   invitations   Invitation[]
+  featureRequests FeatureRequest[]
 
   @@map("user")
 }
@@ -79,6 +80,7 @@ model Organization {
   metadata    String?
   members     Member[]
   invitations Invitation[]
+  projects    Project[]
 
   @@map("organization")
 }
@@ -107,4 +109,55 @@ model Invitation {
   user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
 
   @@map("invitation")
+}
+
+model Project {
+  id             String         @id @default(cuid())
+  name           String
+  description    String?
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  featureRequests FeatureRequest[]
+
+  @@map("project")
+}
+
+enum FeatureRequestStatus {
+  PENDING
+  UNDER_REVIEW
+  PLANNED
+  IN_PROGRESS
+  SHIPPED
+  REJECTED
+}
+
+enum FeatureRequestSource {
+  FORM
+  EMAIL
+  TICKET
+  CALL
+}
+
+model FeatureRequest {
+  id             String               @id @default(cuid())
+  title          String
+  content        String
+  status         FeatureRequestStatus @default(PENDING)
+  source         FeatureRequestSource
+  sourceMetadata Json?
+  submitterEmail String?
+  submitterName  String?
+  projectId      String
+  project        Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdById    String?
+  createdBy      User?                @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  isSpecificEnough  Boolean?
+  missingDimensions String[]            @default([])
+  followUpQuestions String[]            @default([])
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@map("feature_request")
 }
