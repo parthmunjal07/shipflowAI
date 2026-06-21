@@ -11,8 +11,18 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.73",
+    "@repo/auth": "workspace:*",
+    "@repo/db": "workspace:*",
     "@repo/ui": "workspace:*",
+    "@sentry/nextjs": "^8.47.0",
+    "ai": "^6.0.208",
+    "better-auth": "^1.6.20",
+    "inngest": "^4.7.0",
+    "lucide-react": "^1.21.0",
     "next": "16.2.0",
+    "octokit": "^5.0.5",
+    "razorpay": "^2.9.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
