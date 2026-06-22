@@ -16,6 +16,12 @@ type Events = {
       round: number;
     };
   };
+  "shipflow/prd.generate": {
+    data: { featureRequestId: string };
+  };
+  "shipflow/prd.generate-tasks": {
+    data: { featureRequestId: string };
+  };
   "shipflow/duplicate.responded": {
     data: {
       featureRequestId: string;

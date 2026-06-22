@@ -37,6 +37,7 @@ export function PrdEditor({ prd }: { prd: PRD }) {
 
   const updateMutation = trpc.featureRequest.updatePrd.useMutation();
   const finalizeMutation = trpc.featureRequest.finalizePrd.useMutation();
+  const generateTasksMutation = trpc.featureRequest.generateTasks.useMutation();
 
   const handleSave = async () => {
     await updateMutation.mutateAsync({
@@ -48,11 +49,15 @@ export function PrdEditor({ prd }: { prd: PRD }) {
   };
 
   const handleFinalize = async () => {
-    // Optionally save first before finalizing
     if (isEditing) {
       await handleSave();
     }
     await finalizeMutation.mutateAsync({ prdId: prd.id });
+    router.refresh();
+  };
+
+  const handleGenerateTasks = async () => {
+    await generateTasksMutation.mutateAsync({ featureRequestId: prd.featureRequestId });
     router.refresh();
   };
 
@@ -172,8 +177,13 @@ export function PrdEditor({ prd }: { prd: PRD }) {
         )}
         
         {prd.isFinalized && (
-          <button type="button" className="px-4 py-2 text-sm font-medium border rounded-md bg-purple-600 text-white hover:bg-purple-700">
-            Continue to Tasks ➡️
+          <button 
+            type="button" 
+            onClick={handleGenerateTasks}
+            disabled={generateTasksMutation.isPending}
+            className="px-4 py-2 text-sm font-medium border rounded-md bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+          >
+            {generateTasksMutation.isPending ? "Generating Tasks..." : "Generate Task Breakdown ➡️"}
           </button>
         )}
       </div>

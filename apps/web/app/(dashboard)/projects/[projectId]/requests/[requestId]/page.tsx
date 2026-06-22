@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@repo/db";
 import { PrdEditor } from "../../../../../../components/prd-editor";
+import { KanbanBoard } from "../../../../../../components/kanban-board";
+import { PlanApprovalBanner } from "../../../../../../components/plan-approval-banner";
 import Link from "next/link";
 
 // Server-side trpc caller setup (simplified for fetching data in server components)
@@ -20,6 +22,9 @@ export default async function FeatureRequestPage({
     include: {
       prd: true,
       clarificationMessages: {
+        orderBy: { createdAt: "asc" },
+      },
+      tasks: {
         orderBy: { createdAt: "asc" },
       },
     },
@@ -59,6 +64,20 @@ export default async function FeatureRequestPage({
           ) : (
             <p>No PRD has been generated for this request yet.</p>
           )}
+        </div>
+      )}
+
+      {/* Generated Tasks */}
+      {featureRequest.tasks && featureRequest.tasks.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-6">Engineering Plan</h2>
+          {featureRequest.prd && !featureRequest.prd.planApprovedAt && (
+            <PlanApprovalBanner featureRequestId={featureRequest.id} />
+          )}
+          <KanbanBoard 
+            initialTasks={featureRequest.tasks} 
+            isLocked={featureRequest.prd ? !featureRequest.prd.planApprovedAt : false} 
+          />
         </div>
       )}
 

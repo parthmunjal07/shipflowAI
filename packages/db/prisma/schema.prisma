@@ -22,6 +22,7 @@ model User {
   members       Member[]
   invitations   Invitation[]
   featureRequests FeatureRequest[]
+  assignedTasks   Task[]
 
   @@map("user")
 }
@@ -176,6 +177,9 @@ model FeatureRequest {
 
   // PRD link
   prd            PRD?
+  
+  // Tasks
+  tasks          Task[]
 
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
@@ -198,6 +202,7 @@ model PRD {
   successMetrics   String[]
 
   isFinalized      Boolean        @default(false)
+  planApprovedAt   DateTime?
 
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
@@ -215,4 +220,52 @@ model ClarificationMessage {
   createdAt        DateTime       @default(now())
 
   @@map("clarification_message")
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+}
+
+enum TaskCategory {
+  FRONTEND
+  BACKEND
+  INFRA
+  DESIGN
+  FULLSTACK
+}
+
+enum TaskEffort {
+  S
+  M
+  L
+  XL
+}
+
+model Task {
+  id               String         @id @default(cuid())
+  featureRequestId String
+  featureRequest   FeatureRequest @relation(fields: [featureRequestId], references: [id], onDelete: Cascade)
+
+  title            String
+  description      String
+  status           TaskStatus     @default(TODO)
+  category         TaskCategory
+  effort           TaskEffort?
+  
+  // Traceability
+  satisfiedAcceptanceCriteria String[] // Exact strings from the PRD
+  traceabilityNotes           String?  // Brief explanation of how it meets the criteria
+
+  // Assignment & Linking
+  assigneeId       String?
+  assignee         User?          @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  linkedPrUrls     String[]       @default([])
+  
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@map("task")
 }

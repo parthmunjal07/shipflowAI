@@ -3,4 +3,7 @@ export * from "./classifiers/duplicate-educator";
 export * from "./provider";
 export * from "./embeddings/generate";
 export * from "./embeddings/similarity";
-export * from "./generators/prd";
+export { generateStructuredPRD } from "./generators/prd";
+export type { PRDResult } from "./generators/prd";
+export { generateTaskBreakdown } from "./generators/tasks";
+export type { TaskResult } from "./generators/tasks";

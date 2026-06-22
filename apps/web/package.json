@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.73",
+    "@hello-pangea/dnd": "^18.0.1",
     "@repo/ai": "workspace:*",
     "@repo/api": "workspace:*",
     "@repo/auth": "workspace:*",

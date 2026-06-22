@@ -166,7 +166,48 @@ export const featureRequestRouter = router({
           clarificationMessages: { orderBy: { createdAt: "asc" } },
           duplicateOf: { select: { id: true, title: true, status: true } },
           prd: true,
+          tasks: { orderBy: { createdAt: "asc" } },
         },
+      });
+    }),
+
+  generateTasks: publicProcedure
+    .input(z.object({ featureRequestId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await inngest.send({
+        name: "shipflow/prd.generate-tasks",
+        data: { featureRequestId: input.featureRequestId },
+      });
+      return { success: true };
+    }),
+
+  approvePlan: publicProcedure
+    .input(z.object({ featureRequestId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Use transaction to update both PRD and Feature Request
+      return ctx.prisma.$transaction([
+        ctx.prisma.pRD.update({
+          where: { featureRequestId: input.featureRequestId },
+          data: { planApprovedAt: new Date() },
+        }),
+        ctx.prisma.featureRequest.update({
+          where: { id: input.featureRequestId },
+          data: { status: "IN_PROGRESS" },
+        }),
+      ]);
+    }),
+
+  updateTaskStatus: publicProcedure
+    .input(
+      z.object({
+        taskId: z.string(),
+        status: z.enum(["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.task.update({
+        where: { id: input.taskId },
+        data: { status: input.status },
       });
     }),
 
