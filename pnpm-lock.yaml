@@ -42,6 +42,9 @@ importers:
       '@ai-sdk/openai':
         specifier: ^3.0.73
         version: 3.0.73(zod@4.4.3)
+      '@repo/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
       '@repo/api':
         specifier: workspace:*
         version: link:../../packages/api

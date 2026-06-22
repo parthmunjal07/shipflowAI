@@ -127,6 +127,7 @@ model Project {
 enum FeatureRequestStatus {
   PENDING
   UNDER_REVIEW
+  DUPLICATE_DETECTED
   PLANNED
   IN_PROGRESS
   SHIPPED
@@ -165,10 +166,43 @@ model FeatureRequest {
   clarificationStatus  ClarificationStatus @default(NONE)
   clarificationMessages ClarificationMessage[]
   embedding            Unsupported("vector(1024)")?
+
+  // Duplicate detection fields
+  duplicateOfId  String?
+  duplicateOf    FeatureRequest?      @relation("DuplicateRelation", fields: [duplicateOfId], references: [id], onDelete: SetNull)
+  duplicates     FeatureRequest[]     @relation("DuplicateRelation")
+  duplicateNote  String?              // AI-generated explanation of why this is a duplicate
+  duplicateSimilarity Float?          // Cosine similarity score (0-1)
+
+  // PRD link
+  prd            PRD?
+
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
 
   @@map("feature_request")
+}
+
+model PRD {
+  id               String         @id @default(cuid())
+  featureRequestId String         @unique
+  featureRequest   FeatureRequest @relation(fields: [featureRequestId], references: [id], onDelete: Cascade)
+
+  // Structured fields
+  problemStatement String
+  goals            String[]
+  nonGoals         String[]
+  userStories      String[]
+  acceptanceCriteria String[]
+  edgeCases        String[]
+  successMetrics   String[]
+
+  isFinalized      Boolean        @default(false)
+
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@map("prd")
 }
 
 model ClarificationMessage {

@@ -1,6 +1,6 @@
 import { router, publicProcedure } from "../trpc";
 import { z } from "zod";
-import { generateEmbedding, storeEmbedding } from "@repo/ai";
+import { generateEmbedding, storeEmbedding, findSimilarRequests } from "@repo/ai";
 import { inngest } from "@repo/inngest";
 
 export const featureRequestRouter = router({
@@ -89,6 +89,64 @@ export const featureRequestRouter = router({
       return { success: true };
     }),
 
+  respondToDuplicate: publicProcedure
+    .input(
+      z.object({
+        featureRequestId: z.string(),
+        action: z.enum(["merge", "proceed", "revise"]),
+        revisedContent: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Validate the feature request is actually in DUPLICATE_DETECTED status
+      const featureRequest = await ctx.prisma.featureRequest.findUniqueOrThrow({
+        where: { id: input.featureRequestId },
+      });
+
+      if (featureRequest.status !== "DUPLICATE_DETECTED") {
+        throw new Error(
+          `Feature request is not in DUPLICATE_DETECTED status (current: ${featureRequest.status})`
+        );
+      }
+
+      if (input.action === "revise" && !input.revisedContent) {
+        throw new Error("revisedContent is required when action is 'revise'");
+      }
+
+      // Fire Inngest event to resume the durable workflow
+      await inngest.send({
+        name: "shipflow/duplicate.responded",
+        data: {
+          featureRequestId: input.featureRequestId,
+          action: input.action,
+          revisedContent: input.revisedContent,
+        },
+      });
+
+      return { success: true, action: input.action };
+    }),
+
+  checkSimilar: publicProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        title: z.string(),
+        content: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const textForAI = `${input.title}\n\n${input.content}`;
+      const embedding = await generateEmbedding(textForAI);
+      const similar = await findSimilarRequests(
+        ctx.prisma,
+        input.projectId,
+        embedding,
+        0.75, // slightly lower threshold for preview
+        3
+      );
+      return { similar };
+    }),
+
   listByProject: publicProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -106,7 +164,40 @@ export const featureRequestRouter = router({
         where: { id: input.id },
         include: {
           clarificationMessages: { orderBy: { createdAt: "asc" } },
+          duplicateOf: { select: { id: true, title: true, status: true } },
+          prd: true,
         },
+      });
+    }),
+
+  updatePrd: publicProcedure
+    .input(
+      z.object({
+        prdId: z.string(),
+        data: z.object({
+          problemStatement: z.string().optional(),
+          goals: z.array(z.string()).optional(),
+          nonGoals: z.array(z.string()).optional(),
+          userStories: z.array(z.string()).optional(),
+          acceptanceCriteria: z.array(z.string()).optional(),
+          edgeCases: z.array(z.string()).optional(),
+          successMetrics: z.array(z.string()).optional(),
+        }),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.pRD.update({
+        where: { id: input.prdId },
+        data: input.data,
+      });
+    }),
+
+  finalizePrd: publicProcedure
+    .input(z.object({ prdId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.pRD.update({
+        where: { id: input.prdId },
+        data: { isFinalized: true },
       });
     }),
 });

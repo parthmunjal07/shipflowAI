@@ -16,6 +16,18 @@ type Events = {
       round: number;
     };
   };
+  "shipflow/duplicate.responded": {
+    data: {
+      featureRequestId: string;
+      action: "merge" | "proceed" | "revise";
+      revisedContent?: string;
+    };
+  };
+  "shipflow/feature-request.resolved": {
+    data: {
+      featureRequestId: string;
+    };
+  };
 };
 
 export const inngest = new Inngest({
