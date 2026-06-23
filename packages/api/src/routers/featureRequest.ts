@@ -64,6 +64,10 @@ export const featureRequestRouter = router({
         include: { clarificationMessages: { orderBy: { round: "desc" }, take: 1 } },
       });
 
+      if (featureRequest.status === "SHIPPED") {
+        throw new Error("Cannot submit clarification because the feature is already shipped.");
+      }
+
       const currentRound = featureRequest.clarificationMessages[0]?.round ?? 1;
 
       // 2. Store user's answer as a clarification message
@@ -205,6 +209,14 @@ export const featureRequestRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const task = await ctx.prisma.task.findUniqueOrThrow({
+        where: { id: input.taskId },
+        include: { featureRequest: { select: { status: true } } }
+      });
+      if (task.featureRequest.status === "SHIPPED") {
+        throw new Error("Cannot update task status because the feature is already shipped.");
+      }
+
       return ctx.prisma.task.update({
         where: { id: input.taskId },
         data: { status: input.status },
@@ -227,6 +239,14 @@ export const featureRequestRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const prd = await ctx.prisma.pRD.findUniqueOrThrow({
+        where: { id: input.prdId },
+        include: { featureRequest: { select: { status: true } } }
+      });
+      if (prd.featureRequest.status === "SHIPPED") {
+        throw new Error("Cannot update PRD because the feature is already shipped.");
+      }
+
       return ctx.prisma.pRD.update({
         where: { id: input.prdId },
         data: input.data,
@@ -239,6 +259,41 @@ export const featureRequestRouter = router({
       return ctx.prisma.pRD.update({
         where: { id: input.prdId },
         data: { isFinalized: true },
+      });
+    }),
+
+  updateStatus: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        status: z.enum([
+          "PENDING",
+          "UNDER_REVIEW",
+          "DUPLICATE_DETECTED",
+          "PLANNED",
+          "IN_PROGRESS",
+          "READY_FOR_APPROVAL",
+          "SHIPPED",
+          "REJECTED",
+        ]),
+        approvalNotes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existing = await ctx.prisma.featureRequest.findUniqueOrThrow({
+        where: { id: input.id },
+      });
+      
+      if (existing.status === "SHIPPED") {
+        throw new Error("Cannot modify a Feature Request that has already been shipped.");
+      }
+
+      return ctx.prisma.featureRequest.update({
+        where: { id: input.id },
+        data: { 
+          status: input.status,
+          ...(input.approvalNotes ? { approvalNotes: input.approvalNotes } : {})
+        },
       });
     }),
 });

@@ -19,7 +19,7 @@ type PRD = {
   updatedAt: Date;
 };
 
-export function PrdEditor({ prd }: { prd: PRD }) {
+export function PrdEditor({ prd, isLocked = false }: { prd: PRD, isLocked?: boolean }) {
   const router = useRouter();
   
   // Local state for the form
@@ -148,7 +148,7 @@ export function PrdEditor({ prd }: { prd: PRD }) {
           </div>
         </div>
         
-        {!prd.isFinalized && (
+        {!prd.isFinalized && !isLocked && (
           <div className="flex gap-2">
             {isEditing ? (
               <>
@@ -176,7 +176,7 @@ export function PrdEditor({ prd }: { prd: PRD }) {
           </div>
         )}
         
-        {prd.isFinalized && (
+        {prd.isFinalized && !isLocked && (
           <button 
             type="button" 
             onClick={handleGenerateTasks}
