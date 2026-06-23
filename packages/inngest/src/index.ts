@@ -3,9 +3,22 @@ export type { Events } from "./client";
 export { clarificationLoop } from "./functions/clarification-loop";
 export { generatePrd } from "./functions/generate-prd";
 export { generateTasks } from "./functions/generate-tasks";
+export { processPrOpened, processPrSynchronize, processPrClosed } from "./functions/github-pr-tracking";
+export { processPrReview } from "./functions/github-pr-review";
 
 // Aggregate all functions for the serve handler
 import { clarificationLoop } from "./functions/clarification-loop";
 import { generatePrd } from "./functions/generate-prd";
 import { generateTasks } from "./functions/generate-tasks";
-export const allFunctions = [clarificationLoop, generatePrd, generateTasks];
+import { processPrOpened, processPrSynchronize, processPrClosed } from "./functions/github-pr-tracking";
+import { processPrReview } from "./functions/github-pr-review";
+
+export const allFunctions = [
+  clarificationLoop, 
+  generatePrd, 
+  generateTasks,
+  processPrOpened,
+  processPrSynchronize,
+  processPrClosed,
+  processPrReview
+];

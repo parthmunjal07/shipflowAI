@@ -82,6 +82,7 @@ model Organization {
   members     Member[]
   invitations Invitation[]
   projects    Project[]
+  githubInstallation GithubInstallation?
 
   @@map("organization")
 }
@@ -121,6 +122,8 @@ model Project {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   featureRequests FeatureRequest[]
+  repositories    ProjectRepository[]
+  tasks           Task[]
 
   @@map("project")
 }
@@ -246,6 +249,9 @@ enum TaskEffort {
 
 model Task {
   id               String         @id @default(cuid())
+  projectId        String
+  project          Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  number           Int
   featureRequestId String
   featureRequest   FeatureRequest @relation(fields: [featureRequestId], references: [id], onDelete: Cascade)
 
@@ -263,9 +269,88 @@ model Task {
   assigneeId       String?
   assignee         User?          @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
   linkedPrUrls     String[]       @default([])
+  pullRequests     PullRequest[]  @relation("TaskPullRequests")
   
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
+  @@unique([projectId, number])
   @@map("task")
+}
+
+model GithubInstallation {
+  id               String        @id @default(cuid())
+  organizationId   String?       @unique
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  installationId   Int           @unique
+  accountName      String
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  repositories     GithubRepository[]
+
+  @@map("github_installation")
+}
+
+model GithubInstallState {
+  id               String        @id @default(cuid())
+  token            String        @unique
+  organizationId   String
+  userId           String
+  expiresAt        DateTime
+  createdAt        DateTime      @default(now())
+
+  @@map("github_install_state")
+}
+
+model GithubRepository {
+  id               String               @id @default(cuid())
+  installationId   String
+  installation     GithubInstallation   @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  repoId           Int                  @unique
+  fullName         String
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  projects         ProjectRepository[]
+  pullRequests     PullRequest[]
+
+  @@map("github_repository")
+}
+
+model ProjectRepository {
+  projectId        String
+  project          Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  repositoryId     String
+  repository       GithubRepository     @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  createdAt        DateTime             @default(now())
+
+  @@id([projectId, repositoryId])
+  @@map("project_repository")
+}
+
+model GithubWebhookLog {
+  id           String   @id @default(cuid())
+  githubEvent  String   // e.g., "pull_request", "installation"
+  githubAction String?  // e.g., "opened", "synchronize", "closed"
+  payload      Json
+  createdAt    DateTime @default(now())
+
+  @@map("github_webhook_log")
+}
+
+model PullRequest {
+  id              String           @id @default(cuid())
+  githubId        Int              @unique
+  number          Int
+  title           String
+  state           String
+  url             String
+  authorLogin     String
+  repositoryId    String
+  repository      GithubRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  mergedAt        DateTime?
+  tasks           Task[]           @relation("TaskPullRequests")
+
+  @@map("pull_request")
 }

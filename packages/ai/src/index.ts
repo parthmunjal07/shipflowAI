@@ -7,3 +7,5 @@ export { generateStructuredPRD } from "./generators/prd";
 export type { PRDResult } from "./generators/prd";
 export { generateTaskBreakdown } from "./generators/tasks";
 export type { TaskResult } from "./generators/tasks";
+export { generatePrReview, PRReviewSchema } from "./reviewers/pr-reviewer";
+export type { PRReviewResult } from "./reviewers/pr-reviewer";

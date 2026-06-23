@@ -22,6 +22,31 @@ type Events = {
   "shipflow/prd.generate-tasks": {
     data: { featureRequestId: string };
   };
+  "github/pull_request.opened": {
+    data: {
+      payload: any;
+    };
+  };
+  "github/pull_request.synchronize": {
+    data: {
+      payload: any;
+    };
+  };
+  "github/pull_request.closed": {
+    data: {
+      payload: any;
+    };
+  };
+  "shipflow/pr.review-requested": {
+    data: {
+      pullRequestId: string;
+      githubInstallationDbId: string;
+      owner: string;
+      repo: string;
+      pullNumber: number;
+      headSha: string;
+    };
+  };
   "shipflow/duplicate.responded": {
     data: {
       featureRequestId: string;

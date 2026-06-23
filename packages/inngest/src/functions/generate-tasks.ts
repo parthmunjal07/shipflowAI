@@ -42,24 +42,36 @@ export const generateTasks = inngest.createFunction(
     // 3. Save the generated tasks to the database
     await step.run("save-tasks", async () => {
       // Use a transaction to create tasks and update the feature request status
-      await prisma.$transaction([
-        prisma.task.createMany({
-          data: tasks.map((t) => ({
-            featureRequestId,
-            title: t.title,
-            description: t.description,
-            category: t.category,
-            effort: t.effort,
-            satisfiedAcceptanceCriteria: t.satisfiedAcceptanceCriteria,
-            traceabilityNotes: t.traceabilityNotes,
-            status: "TODO",
-          })),
-        }),
-        prisma.featureRequest.update({
+      await prisma.$transaction(async (tx) => {
+        const maxTask = await tx.task.findFirst({
+          where: { projectId: data.projectId },
+          orderBy: { number: 'desc' },
+        });
+
+        let nextNumber = (maxTask?.number || 0) + 1;
+
+        for (const t of tasks) {
+          await tx.task.create({
+            data: {
+              projectId: data.projectId,
+              number: nextNumber++,
+              featureRequestId,
+              title: t.title,
+              description: t.description,
+              category: t.category,
+              effort: t.effort,
+              satisfiedAcceptanceCriteria: t.satisfiedAcceptanceCriteria,
+              traceabilityNotes: t.traceabilityNotes,
+              status: "TODO",
+            },
+          });
+        }
+
+        await tx.featureRequest.update({
           where: { id: featureRequestId },
           data: { status: "PLANNED" },
-        }),
-      ]);
+        });
+      });
     });
 
     return { success: true, taskCount: tasks.length };
