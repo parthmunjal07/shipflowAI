@@ -23,6 +23,47 @@ export const processPrReview = inngest.createFunction(
       return installation.organizationId;
     });
 
+    const billingStatus = await step.run("check-billing-limits", async () => {
+      const org = await (prisma as any).organization.findUnique({
+        where: { id: organizationId }
+      });
+      const limits = org.plan === "PRO" ? { aiReviews: 100 } : { aiReviews: 10 };
+      
+      if (org.aiReviewsUsed >= limits.aiReviews) {
+        return { allowed: false, plan: org.plan, limit: limits.aiReviews };
+      }
+      return { allowed: true };
+    });
+
+    if (!billingStatus.allowed) {
+      await step.run("handle-billing-limit", async () => {
+        const octokit = await getOctokit(githubInstallationDbId);
+        const deniedStatus = billingStatus as { allowed: false, plan: string, limit: number };
+        
+        await octokit.rest.pulls.createReview({
+          owner,
+          repo,
+          pull_number: pullNumber,
+          event: "COMMENT",
+          body: `⚠️ **ShipFlow AI Review Skipped: Billing Limit Reached**\n\nYour organization has reached its limit of ${deniedStatus.limit} AI Reviews for the current billing cycle on the ${deniedStatus.plan} plan.\n\nPlease upgrade your plan in the ShipFlow dashboard to resume automated reviews.`,
+        });
+
+        await octokit.rest.checks.create({
+          owner,
+          repo,
+          name: "ShipFlow AI Review",
+          head_sha: headSha,
+          status: "completed",
+          conclusion: "neutral",
+          output: {
+            title: "Billing Limit Reached",
+            summary: "AI Review was skipped because the billing cycle limit was reached.",
+          },
+        });
+      });
+      return { success: false, reason: "billing_limit_reached" };
+    }
+
     const serviceContext = { organizationId };
 
     // 1. Fetch the Review Context (PRDs and Tasks)
@@ -209,6 +250,10 @@ export const processPrReview = inngest.createFunction(
               })),
             },
           },
+        }),
+        (prisma as any).organization.update({
+          where: { id: serviceContext.organizationId },
+          data: { aiReviewsUsed: { increment: 1 } }
         }),
       ]);
     });

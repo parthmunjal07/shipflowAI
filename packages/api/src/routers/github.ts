@@ -2,6 +2,7 @@ import { z } from "zod";
 import { router, protectedProcedure, orgProcedure, requirePermission } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import { App } from "octokit";
+import { FREE_PLAN_LIMITS, PRO_PLAN_LIMITS } from "./billing";
 
 export class GitHubNotConfiguredError extends TRPCError {
   constructor() {
@@ -144,6 +145,38 @@ export const githubRouter = router({
 
       if (!installation) {
         throw new GitHubNotConfiguredError();
+      }
+
+      const org = await (ctx.prisma as any).organization.findUnique({
+        where: { id: orgId },
+        include: {
+          projects: {
+            include: { repositories: true }
+          }
+        }
+      });
+
+      const limits = org.plan === "PRO" ? PRO_PLAN_LIMITS : FREE_PLAN_LIMITS;
+
+      if (limits.repositories !== -1) {
+        const linkedRepoIds = new Set();
+        org.projects.forEach((p: any) => {
+          p.repositories.forEach((pr: any) => linkedRepoIds.add(pr.repositoryId));
+        });
+
+        // Check if the repo we are linking is already in our DB
+        const existingRepo = await (ctx.prisma as any).githubRepository.findUnique({
+          where: { repoId: input.repoId }
+        });
+
+        const isAlreadyLinked = existingRepo && linkedRepoIds.has(existingRepo.id);
+
+        if (!isAlreadyLinked && linkedRepoIds.size >= limits.repositories) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: `You have reached the limit of ${limits.repositories} repositories for the ${org.plan} plan. Please upgrade to PRO to link more repositories.`,
+          });
+        }
       }
 
       // 1. Ensure GithubRepository exists locally

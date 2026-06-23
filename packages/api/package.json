@@ -12,6 +12,7 @@
     "@repo/inngest": "workspace:*",
     "@trpc/server": "^11.0.0-rc.366",
     "octokit": "^5.0.5",
+    "razorpay": "^2.9.6",
     "superjson": "^2.2.1",
     "zod": "^3.23.8"
   },

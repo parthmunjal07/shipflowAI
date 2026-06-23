@@ -84,6 +84,15 @@ model Organization {
   projects    Project[]
   githubInstallation GithubInstallation?
 
+  // Billing & Usage
+  plan                   String   @default("FREE")
+  razorpayCustomerId     String?
+  razorpaySubscriptionId String?
+  subscriptionStatus     String   @default("active")
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  aiReviewsUsed          Int      @default(0)
+
   @@map("organization")
 }
 
