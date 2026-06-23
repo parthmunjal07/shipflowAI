@@ -26,6 +26,11 @@ export default async function FeatureRequestPage({
       },
       tasks: {
         orderBy: { createdAt: "asc" },
+        include: {
+          pullRequests: {
+            select: { id: true, number: true, title: true, reviewStatus: true },
+          },
+        },
       },
     },
   });
@@ -75,8 +80,9 @@ export default async function FeatureRequestPage({
             <PlanApprovalBanner featureRequestId={featureRequest.id} />
           )}
           <KanbanBoard 
-            initialTasks={featureRequest.tasks} 
+            initialTasks={featureRequest.tasks as any} 
             isLocked={featureRequest.prd ? !featureRequest.prd.planApprovedAt : false} 
+            projectId={projectId}
           />
         </div>
       )}

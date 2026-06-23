@@ -337,12 +337,20 @@ model GithubWebhookLog {
   @@map("github_webhook_log")
 }
 
+enum PRReviewStatus {
+  PENDING
+  AWAITING_TASK_LINK
+  APPROVED
+  NEEDS_FIX
+}
+
 model PullRequest {
   id              String           @id @default(cuid())
   githubId        Int              @unique
   number          Int
   title           String
   state           String
+  reviewStatus    PRReviewStatus   @default(PENDING)
   url             String
   authorLogin     String
   repositoryId    String
@@ -351,6 +359,33 @@ model PullRequest {
   updatedAt       DateTime         @updatedAt
   mergedAt        DateTime?
   tasks           Task[]           @relation("TaskPullRequests")
+  reviewRuns      ReviewRun[]
 
   @@map("pull_request")
+}
+
+model ReviewRun {
+  id            String         @id @default(cuid())
+  pullRequestId String
+  pullRequest   PullRequest    @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  headSha       String
+  conclusion    PRReviewStatus // The conclusion for this specific run
+  summary       String         @db.Text
+  createdAt     DateTime       @default(now())
+  issues        ReviewIssue[]
+
+  @@map("review_run")
+}
+
+model ReviewIssue {
+  id          String    @id @default(cuid())
+  reviewRunId String
+  reviewRun   ReviewRun @relation(fields: [reviewRunId], references: [id], onDelete: Cascade)
+  filePath    String
+  snippet     String    @db.Text
+  comment     String    @db.Text
+  isBlocking  Boolean
+  category    String
+
+  @@map("review_issue")
 }

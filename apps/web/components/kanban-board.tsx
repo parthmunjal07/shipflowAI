@@ -21,6 +21,7 @@ export type Task = {
   traceabilityNotes: string | null;
   assigneeId: string | null;
   linkedPrUrls: string[];
+  pullRequests?: { id: string; number: number; title: string; reviewStatus: string }[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -32,7 +33,7 @@ const COLUMNS: { id: TaskStatusType; title: string }[] = [
   { id: "DONE", title: "Done" },
 ];
 
-export function KanbanBoard({ initialTasks, isLocked = false }: { initialTasks: Task[], isLocked?: boolean }) {
+export function KanbanBoard({ initialTasks, isLocked = false, projectId }: { initialTasks: Task[], isLocked?: boolean, projectId: string }) {
   // Local state for optimistic updates
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -199,19 +200,43 @@ export function KanbanBoard({ initialTasks, isLocked = false }: { initialTasks: 
                 </div>
               )}
 
-              {selectedTask.linkedPrUrls.length > 0 && (
-                <div>
+              {selectedTask.pullRequests && selectedTask.pullRequests.length > 0 && (
+                <div className="mt-8">
                   <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Linked Pull Requests</h3>
-                  <ul className="space-y-2">
-                    {selectedTask.linkedPrUrls.map((url: string, idx: number) => (
-                      <li key={idx}>
-                        <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                          {url}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="space-y-3">
+                    {selectedTask.pullRequests.map((pr) => {
+                      const bgMap: Record<string, string> = {
+                        PENDING: "bg-gray-100 text-gray-700",
+                        APPROVED: "bg-green-100 text-green-700",
+                        NEEDS_FIX: "bg-red-100 text-red-700",
+                        AWAITING_TASK_LINK: "bg-yellow-100 text-yellow-700",
+                      };
+                      const statusColor = bgMap[pr.reviewStatus] || bgMap.PENDING;
+
+                      return (
+                        <div key={pr.id} className="p-4 border rounded-xl shadow-sm bg-white flex justify-between items-center">
+                          <div>
+                            <div className="font-semibold text-gray-900 flex items-center gap-2">
+                              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                              #{pr.number}: {pr.title}
+                            </div>
+                            <div className="mt-1 flex items-center gap-2">
+                              <span className={`px-2 py-0.5 text-xs font-semibold rounded uppercase ${statusColor}`}>
+                                {pr.reviewStatus.replace("_", " ")}
+                              </span>
+                            </div>
+                          </div>
+                          <a
+                            href={`/projects/${projectId}/pull-requests/${pr.id}`}
+                            className="text-sm font-medium text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+                          >
+                            View Audit Log
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                          </a>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>

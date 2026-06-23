@@ -59,6 +59,7 @@ async function handlePrUpsertAndLinking(payload: any) {
     update: {
       title: payload.pull_request.title,
       state: payload.pull_request.state,
+      reviewStatus: "PENDING",
       url: payload.pull_request.html_url,
       mergedAt: payload.pull_request.merged_at ? new Date(payload.pull_request.merged_at) : null,
     },

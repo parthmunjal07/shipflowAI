@@ -25,6 +25,12 @@ export const PRReviewSchema = z.object({
         comment: z
           .string()
           .describe("The specific feedback or requested change for this snippet."),
+        isBlocking: z
+          .boolean()
+          .describe("True if this issue must be fixed before the PR can be merged. False for minor nits or suggestions."),
+        category: z
+          .enum(["prd_mismatch", "security", "performance", "edge_case", "code_quality"])
+          .describe("The category of the issue."),
       })
     )
     .describe(
@@ -50,6 +56,8 @@ Guidelines:
 3. If the PR is fundamentally sound, approve it (isApproved: true). You may still leave minor nits in the issues list if they are non-blocking.
 4. When logging an issue, provide the exact 'filePath' and a short 'snippet' exactly as it appears in the diff, followed by your 'comment'. Do NOT use line numbers.
 5. Pay attention to 'unreviewable' flags or lockfile summaries. Do not penalize the PR if lockfiles changed expectedly.
+6. For each issue, accurately classify it into one of the allowed categories: prd_mismatch, security, performance, edge_case, or code_quality.
+7. Explicitly flag if an issue isBlocking. PRD mismatches and security issues are almost always blocking. Minor code quality nits should be non-blocking.
 `;
 
   const userPrompt = `
