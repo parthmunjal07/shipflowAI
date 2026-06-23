@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@repo/db";
+import { auth } from "@repo/auth";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { FeatureRequestTabs } from "../../../../../../components/feature-request-tabs";
 
@@ -11,10 +13,25 @@ export default async function FeatureRequestLayout({
   params: Promise<{ projectId: string; requestId: string }>;
 }) {
   const { requestId, projectId } = await params;
+  const session = await auth.api.getSession({ headers: await headers() });
+  const activeOrganizationId = session?.session?.activeOrganizationId;
+
+  if (!activeOrganizationId) {
+    notFound();
+  }
 
   const featureRequest = await prisma.featureRequest.findUnique({
-    where: { id: requestId, projectId },
-    select: { id: true, title: true, content: true, status: true }
+    where: { 
+      id: requestId, 
+      projectId,
+      project: { organizationId: activeOrganizationId }
+    },
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      status: true,
+    },
   });
 
   if (!featureRequest) {

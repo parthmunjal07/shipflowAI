@@ -11,9 +11,23 @@ export const processPrReview = inngest.createFunction(
   async ({ event, step }) => {
     const { pullRequestId, githubInstallationDbId, owner, repo, pullNumber, headSha } = event.data;
 
+    // Resolve organizationId from installationId
+    const organizationId = await step.run("resolve-organization-id", async () => {
+      const installation = await prisma.githubInstallation.findUniqueOrThrow({
+        where: { id: githubInstallationDbId },
+        select: { organizationId: true }
+      });
+      if (!installation.organizationId) {
+        throw new Error("Installation is not bound to an organization");
+      }
+      return installation.organizationId;
+    });
+
+    const serviceContext = { organizationId };
+
     // 1. Fetch the Review Context (PRDs and Tasks)
     const context = await step.run("fetch-review-context", async () => {
-      const data = await getReviewContextForPullRequest(pullRequestId);
+      const data = await getReviewContextForPullRequest(pullRequestId, serviceContext);
       if (!data) throw new Error("Could not fetch review context. PR not found in DB.");
       return data;
     });
@@ -48,13 +62,18 @@ export const processPrReview = inngest.createFunction(
 
         // Update DB state and log ReviewRun
         await prisma.$transaction([
-          (prisma as any).pullRequest.update({
-            where: { id: pullRequestId },
+          (prisma as any).pullRequest.updateMany({
+            where: { 
+              id: pullRequestId,
+              repository: { installation: { organizationId: serviceContext.organizationId } }
+            },
             data: { reviewStatus: "AWAITING_TASK_LINK" },
           }),
           (prisma as any).reviewRun.create({
             data: {
-              pullRequestId,
+              pullRequest: {
+                connect: { id: pullRequestId }
+              },
               headSha,
               conclusion: "AWAITING_TASK_LINK",
               summary: "Skipped: No ShipFlow Tasks linked to this Pull Request.",
@@ -163,15 +182,20 @@ export const processPrReview = inngest.createFunction(
 
       // Update DB State and store ReviewRun + Issues
       await prisma.$transaction([
-        (prisma as any).pullRequest.update({
-          where: { id: pullRequestId },
+        (prisma as any).pullRequest.updateMany({
+          where: { 
+            id: pullRequestId,
+            repository: { installation: { organizationId: serviceContext.organizationId } }
+          },
           data: {
             reviewStatus: finalConclusion,
           },
         }),
         (prisma as any).reviewRun.create({
           data: {
-            pullRequestId,
+            pullRequest: {
+              connect: { id: pullRequestId }
+            },
             headSha,
             conclusion: finalConclusion,
             summary: reviewResult.summary,

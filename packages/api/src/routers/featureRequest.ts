@@ -1,13 +1,13 @@
-import { router, publicProcedure } from "../trpc";
+import { router, orgProcedure, publicIntakeProcedure, requirePermission } from "../trpc";
 import { z } from "zod";
 import { generateEmbedding, storeEmbedding, findSimilarRequests } from "@repo/ai";
 import { inngest } from "@repo/inngest";
 
 export const featureRequestRouter = router({
-  create: publicProcedure
+  create: publicIntakeProcedure
     .input(
       z.object({
-        projectId: z.string(),
+        intakeToken: z.string(),
         title: z.string(),
         content: z.string(),
         submitterEmail: z.string().email().optional(),
@@ -15,6 +15,15 @@ export const featureRequestRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Resolve project from intake token
+      const project = await ctx.prisma.project.findUnique({
+        where: { intakeToken: input.intakeToken },
+      });
+
+      if (!project || !project.publicIntakeEnabled) {
+        throw new Error("Invalid or disabled intake token");
+      }
+
       const textForAI = `${input.title}\n\n${input.content}`;
 
       // 1. Generate embedding for similarity search
@@ -27,7 +36,7 @@ export const featureRequestRouter = router({
           content: input.content,
           submitterEmail: input.submitterEmail,
           submitterName: input.submitterName,
-          projectId: input.projectId,
+          projectId: project.id,
           source: "FORM",
           createdById: ctx.session?.user?.id,
         },
@@ -41,7 +50,7 @@ export const featureRequestRouter = router({
         name: "shipflow/feature-request.created",
         data: {
           featureRequestId: featureRequest.id,
-          projectId: input.projectId,
+          projectId: project.id,
           title: input.title,
           content: input.content,
         },
@@ -50,7 +59,7 @@ export const featureRequestRouter = router({
       return { featureRequest };
     }),
 
-  submitClarification: publicProcedure
+  submitClarification: requirePermission("SUBMIT_CLARIFICATION")
     .input(
       z.object({
         featureRequestId: z.string(),
@@ -59,8 +68,11 @@ export const featureRequestRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       // 1. Get the current feature request to determine the round
-      const featureRequest = await ctx.prisma.featureRequest.findUniqueOrThrow({
-        where: { id: input.featureRequestId },
+      const featureRequest = await ctx.prisma.featureRequest.findFirstOrThrow({
+        where: { 
+          id: input.featureRequestId,
+          project: { organizationId: ctx.activeOrganizationId }
+        },
         include: { clarificationMessages: { orderBy: { round: "desc" }, take: 1 } },
       });
 
@@ -93,7 +105,7 @@ export const featureRequestRouter = router({
       return { success: true };
     }),
 
-  respondToDuplicate: publicProcedure
+  respondToDuplicate: orgProcedure
     .input(
       z.object({
         featureRequestId: z.string(),
@@ -103,8 +115,11 @@ export const featureRequestRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       // Validate the feature request is actually in DUPLICATE_DETECTED status
-      const featureRequest = await ctx.prisma.featureRequest.findUniqueOrThrow({
-        where: { id: input.featureRequestId },
+      const featureRequest = await ctx.prisma.featureRequest.findFirstOrThrow({
+        where: { 
+          id: input.featureRequestId,
+          project: { organizationId: ctx.activeOrganizationId }
+        },
       });
 
       if (featureRequest.status !== "DUPLICATE_DETECTED") {
@@ -130,7 +145,7 @@ export const featureRequestRouter = router({
       return { success: true, action: input.action };
     }),
 
-  checkSimilar: publicProcedure
+  checkSimilar: orgProcedure
     .input(
       z.object({
         projectId: z.string(),
@@ -139,6 +154,11 @@ export const featureRequestRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
+      // Ensure the project belongs to the organization
+      await ctx.prisma.project.findFirstOrThrow({
+        where: { id: input.projectId, organizationId: ctx.activeOrganizationId }
+      });
+
       const textForAI = `${input.title}\n\n${input.content}`;
       const embedding = await generateEmbedding(textForAI);
       const similar = await findSimilarRequests(
@@ -151,21 +171,27 @@ export const featureRequestRouter = router({
       return { similar };
     }),
 
-  listByProject: publicProcedure
+  listByProject: orgProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ ctx, input }) => {
       return ctx.prisma.featureRequest.findMany({
-        where: { projectId: input.projectId },
+        where: { 
+          projectId: input.projectId,
+          project: { organizationId: ctx.activeOrganizationId }
+        },
         orderBy: { createdAt: "desc" },
         include: { clarificationMessages: true },
       });
     }),
 
-  getById: publicProcedure
+  getById: orgProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      return ctx.prisma.featureRequest.findUniqueOrThrow({
-        where: { id: input.id },
+      return ctx.prisma.featureRequest.findFirstOrThrow({
+        where: { 
+          id: input.id,
+          project: { organizationId: ctx.activeOrganizationId }
+        },
         include: {
           clarificationMessages: { orderBy: { createdAt: "asc" } },
           duplicateOf: { select: { id: true, title: true, status: true } },
@@ -175,9 +201,14 @@ export const featureRequestRouter = router({
       });
     }),
 
-  generateTasks: publicProcedure
+  generateTasks: requirePermission("GENERATE_TASKS")
     .input(z.object({ featureRequestId: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      // Verify ownership
+      await ctx.prisma.featureRequest.findFirstOrThrow({
+        where: { id: input.featureRequestId, project: { organizationId: ctx.activeOrganizationId } }
+      });
+
       await inngest.send({
         name: "shipflow/prd.generate-tasks",
         data: { featureRequestId: input.featureRequestId },
@@ -185,9 +216,14 @@ export const featureRequestRouter = router({
       return { success: true };
     }),
 
-  approvePlan: publicProcedure
+  approvePlan: requirePermission("APPROVE_PLAN")
     .input(z.object({ featureRequestId: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      // Verify ownership
+      await ctx.prisma.featureRequest.findFirstOrThrow({
+        where: { id: input.featureRequestId, project: { organizationId: ctx.activeOrganizationId } }
+      });
+
       // Use transaction to update both PRD and Feature Request
       return ctx.prisma.$transaction([
         ctx.prisma.pRD.update({
@@ -201,7 +237,7 @@ export const featureRequestRouter = router({
       ]);
     }),
 
-  updateTaskStatus: publicProcedure
+  updateTaskStatus: requirePermission("UPDATE_TASK_STATUS")
     .input(
       z.object({
         taskId: z.string(),
@@ -209,8 +245,8 @@ export const featureRequestRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const task = await ctx.prisma.task.findUniqueOrThrow({
-        where: { id: input.taskId },
+      const task = await ctx.prisma.task.findFirstOrThrow({
+        where: { id: input.taskId, project: { organizationId: ctx.activeOrganizationId } },
         include: { featureRequest: { select: { status: true } } }
       });
       if (task.featureRequest.status === "SHIPPED") {
@@ -223,7 +259,7 @@ export const featureRequestRouter = router({
       });
     }),
 
-  updatePrd: publicProcedure
+  updatePrd: requirePermission("UPDATE_PRD")
     .input(
       z.object({
         prdId: z.string(),
@@ -239,8 +275,8 @@ export const featureRequestRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const prd = await ctx.prisma.pRD.findUniqueOrThrow({
-        where: { id: input.prdId },
+      const prd = await ctx.prisma.pRD.findFirstOrThrow({
+        where: { id: input.prdId, featureRequest: { project: { organizationId: ctx.activeOrganizationId } } },
         include: { featureRequest: { select: { status: true } } }
       });
       if (prd.featureRequest.status === "SHIPPED") {
@@ -253,16 +289,19 @@ export const featureRequestRouter = router({
       });
     }),
 
-  finalizePrd: publicProcedure
+  finalizePrd: requirePermission("FINALIZE_PRD")
     .input(z.object({ prdId: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.pRD.findFirstOrThrow({
+        where: { id: input.prdId, featureRequest: { project: { organizationId: ctx.activeOrganizationId } } }
+      });
       return ctx.prisma.pRD.update({
         where: { id: input.prdId },
         data: { isFinalized: true },
       });
     }),
 
-  updateStatus: publicProcedure
+  updateStatus: requirePermission("UPDATE_STATUS")
     .input(
       z.object({
         id: z.string(),
@@ -280,8 +319,8 @@ export const featureRequestRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const existing = await ctx.prisma.featureRequest.findUniqueOrThrow({
-        where: { id: input.id },
+      const existing = await ctx.prisma.featureRequest.findFirstOrThrow({
+        where: { id: input.id, project: { organizationId: ctx.activeOrganizationId } },
       });
       
       if (existing.status === "SHIPPED") {

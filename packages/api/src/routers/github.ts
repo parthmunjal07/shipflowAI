@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure } from "../trpc";
+import { router, protectedProcedure, orgProcedure, requirePermission } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import { App } from "octokit";
 
@@ -33,8 +33,8 @@ async function getOctokitForInstallation(installationId: number) {
 }
 
 export const githubRouter = router({
-  getInstallation: protectedProcedure.query(async ({ ctx }) => {
-    const orgId = ctx.session.session.activeOrganizationId;
+  getInstallation: requirePermission("VIEW_ORG_DATA").query(async ({ ctx }) => {
+    const orgId = ctx.activeOrganizationId;
     if (!orgId) throw new Error("No active organization");
 
     return (ctx.prisma as any).githubInstallation.findUnique({
@@ -42,10 +42,10 @@ export const githubRouter = router({
     });
   }),
 
-  claimInstallation: protectedProcedure
+  claimInstallation: requirePermission("MANAGE_INSTALLATIONS")
     .input(z.object({ installationId: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      const orgId = ctx.session.session.activeOrganizationId;
+      const orgId = ctx.activeOrganizationId;
       if (!orgId) throw new Error("No active organization");
 
       // Verify the installation exists and is unclaimed
@@ -67,8 +67,8 @@ export const githubRouter = router({
       });
     }),
 
-  removeInstallation: protectedProcedure.mutation(async ({ ctx }) => {
-    const orgId = ctx.session.session.activeOrganizationId;
+  removeInstallation: requirePermission("MANAGE_INSTALLATIONS").mutation(async ({ ctx }) => {
+    const orgId = ctx.activeOrganizationId;
     if (!orgId) throw new Error("No active organization");
 
     const installation = await (ctx.prisma as any).githubInstallation.findUnique({
@@ -86,7 +86,7 @@ export const githubRouter = router({
   }),
 
   // Project-level endpoints
-  getProjectRepos: protectedProcedure
+  getProjectRepos: requirePermission("VIEW_ORG_DATA")
     .input(z.object({ projectId: z.string() }))
     .query(async ({ ctx, input }) => {
       const projectRepos = await (ctx.prisma as any).projectRepository.findMany({
@@ -96,8 +96,8 @@ export const githubRouter = router({
       return projectRepos.map((pr: any) => pr.repository);
     }),
 
-  listAvailableRepos: protectedProcedure.query(async ({ ctx }) => {
-    const orgId = ctx.session.session.activeOrganizationId;
+  listAvailableRepos: requirePermission("VIEW_ORG_DATA").query(async ({ ctx }) => {
+    const orgId = ctx.activeOrganizationId;
     if (!orgId) throw new Error("No active organization");
 
     const installation = await (ctx.prisma as any).githubInstallation.findUnique({
@@ -126,7 +126,7 @@ export const githubRouter = router({
     }
   }),
 
-  linkProjectRepo: protectedProcedure
+  linkProjectRepo: requirePermission("LINK_REPOS")
     .input(
       z.object({
         projectId: z.string(),
@@ -135,7 +135,7 @@ export const githubRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const orgId = ctx.session.session.activeOrganizationId;
+      const orgId = ctx.activeOrganizationId;
       if (!orgId) throw new Error("No active organization");
 
       const installation = await (ctx.prisma as any).githubInstallation.findUnique({
@@ -175,7 +175,7 @@ export const githubRouter = router({
       return { success: true };
     }),
 
-  unlinkProjectRepo: protectedProcedure
+  unlinkProjectRepo: requirePermission("LINK_REPOS")
     .input(z.object({ projectId: z.string(), repoId: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const githubRepo = await (ctx.prisma as any).githubRepository.findUnique({

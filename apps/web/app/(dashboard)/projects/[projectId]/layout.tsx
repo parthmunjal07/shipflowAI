@@ -1,4 +1,7 @@
 import { prisma } from "@repo/db";
+import { auth } from "@repo/auth";
+import { headers } from "next/headers";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 
 export default async function ProjectLayout({
@@ -9,24 +12,31 @@ export default async function ProjectLayout({
   params: Promise<{ projectId: string }>;
 }) {
   const { projectId } = await params;
+  const session = await auth.api.getSession({ headers: await headers() });
+  const activeOrganizationId = session?.session?.activeOrganizationId;
+
+  if (!activeOrganizationId) {
+    notFound();
+  }
 
   const project = await prisma.project.findUnique({
     where: { id: projectId },
   });
 
-  if (!project) {
-    return <div>Project not found</div>;
+  if (!project || project.organizationId !== activeOrganizationId) {
+    notFound();
   }
 
   const pendingApprovalsCount = await prisma.featureRequest.count({
     where: {
       projectId,
       status: "READY_FOR_APPROVAL" as any,
+      project: { organizationId: activeOrganizationId }
     },
   });
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex flex-1 min-h-0 bg-gray-50">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
         <div className="h-16 flex items-center px-6 border-b border-gray-200">

@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@repo/db";
+import { auth } from "@repo/auth";
+import { headers } from "next/headers";
 import { ApprovalActions } from "../../../../../../../components/approval-actions";
 import Link from "next/link";
 
@@ -9,10 +11,20 @@ export default async function ApprovalHubPage({
   params: Promise<{ projectId: string; requestId: string }>;
 }) {
   const { requestId, projectId } = await params;
+  const session = await auth.api.getSession({ headers: await headers() });
+  const activeOrganizationId = session?.session?.activeOrganizationId;
+
+  if (!activeOrganizationId) {
+    notFound();
+  }
 
   // Deep query to get everything for approval
   const featureRequest = await prisma.featureRequest.findUnique({
-    where: { id: requestId, projectId },
+    where: { 
+      id: requestId, 
+      projectId,
+      project: { organizationId: activeOrganizationId }
+    },
     include: {
       prd: true,
       tasks: {

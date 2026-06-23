@@ -30,7 +30,7 @@ export default function IntakePage({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     createRequest.mutate({
-      projectId: params.projectId,
+      intakeToken: params.projectId, // TODO: Move this to a dedicated public route
       title,
       content,
       submitterEmail: email,

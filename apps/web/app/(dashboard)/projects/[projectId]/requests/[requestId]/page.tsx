@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@repo/db";
+import { auth } from "@repo/auth";
+import { headers } from "next/headers";
 import { PrdEditor } from "../../../../../../components/prd-editor";
 import { KanbanBoard } from "../../../../../../components/kanban-board";
 import { PlanApprovalBanner } from "../../../../../../components/plan-approval-banner";
@@ -16,10 +18,20 @@ export default async function FeatureRequestPage({
   params: Promise<{ projectId: string; requestId: string }>;
 }) {
   const { requestId, projectId } = await params;
+  const session = await auth.api.getSession({ headers: await headers() });
+  const activeOrganizationId = session?.session?.activeOrganizationId;
+
+  if (!activeOrganizationId) {
+    notFound();
+  }
 
   // Fetch the feature request
   const featureRequest = await prisma.featureRequest.findUnique({
-    where: { id: requestId, projectId },
+    where: { 
+      id: requestId, 
+      projectId,
+      project: { organizationId: activeOrganizationId }
+    },
     include: {
       prd: true,
       clarificationMessages: {

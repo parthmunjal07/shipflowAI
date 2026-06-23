@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@repo/db";
+import { auth } from "@repo/auth";
+import { headers } from "next/headers";
 import { ProjectGithubSettings } from "../../../../../components/project-github-settings";
 
 export default async function ProjectSettingsPage({
@@ -8,12 +10,18 @@ export default async function ProjectSettingsPage({
   params: Promise<{ projectId: string }>;
 }) {
   const { projectId } = await params;
+  const session = await auth.api.getSession({ headers: await headers() });
+  const activeOrganizationId = session?.session?.activeOrganizationId;
+
+  if (!activeOrganizationId) {
+    notFound();
+  }
 
   const project = await prisma.project.findUnique({
     where: { id: projectId },
   });
 
-  if (!project) {
+  if (!project || project.organizationId !== activeOrganizationId) {
     notFound();
   }
 

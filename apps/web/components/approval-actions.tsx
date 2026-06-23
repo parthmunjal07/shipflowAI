@@ -9,17 +9,19 @@ export function ApprovalActions({ featureRequestId, currentStatus }: { featureRe
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const router = useRouter();
+  const utils = trpc.useUtils();
   
   const updateStatusMutation = trpc.featureRequest.updateStatus.useMutation({
     onSuccess: () => {
       router.refresh();
       setIsSubmitting(false);
       setShowRejectForm(false);
+      utils.featureRequest.getById.invalidate({ id: featureRequestId });
     },
-    onError: (err) => {
+    onError: (err: any) => {
       console.error(err);
       setIsSubmitting(false);
-      alert("Failed to update status");
+      alert("Failed to update status: " + err.message);
     }
   });
 

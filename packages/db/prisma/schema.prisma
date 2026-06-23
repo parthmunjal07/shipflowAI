@@ -125,6 +125,9 @@ model Project {
   repositories    ProjectRepository[]
   tasks           Task[]
 
+  intakeToken         String?  @unique
+  publicIntakeEnabled Boolean  @default(false)
+
   @@map("project")
 }
 

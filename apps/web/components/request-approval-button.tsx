@@ -13,8 +13,8 @@ export function RequestApprovalButton({ featureRequestId, isReady }: { featureRe
       router.refresh();
       setIsSubmitting(false);
     },
-    onError: (err) => {
-      console.error(err);
+    onError: (err: any) => {
+      alert("Failed: " + err.message);
       setIsSubmitting(false);
       alert("Failed to update status");
     }

@@ -1,8 +1,15 @@
 import { prisma } from "@repo/db";
 
-export async function getReviewContextForPullRequest(pullRequestId: string) {
-  const pr = await prisma.pullRequest.findUnique({
-    where: { id: pullRequestId },
+export async function getReviewContextForPullRequest(pullRequestId: string, serviceContext: { organizationId: string }) {
+  const pr = await prisma.pullRequest.findFirst({
+    where: { 
+      id: pullRequestId,
+      repository: {
+        installation: {
+          organizationId: serviceContext.organizationId
+        }
+      }
+    },
     include: {
       tasks: {
         include: {
