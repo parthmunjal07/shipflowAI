@@ -122,7 +122,37 @@ export function MembersTable() {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center p-12"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>;
+    return (
+      <div className="space-y-10 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="border-b border-gray-200 pb-5">
+          <div className="h-8 bg-gray-200 rounded w-48 mb-3"></div>
+          <div className="h-4 bg-gray-200 rounded w-96"></div>
+        </div>
+
+        {/* Invite Form Skeleton */}
+        <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 h-28"></div>
+
+        {/* Members List Skeleton */}
+        <div>
+          <div className="h-4 bg-gray-200 rounded w-32 mb-4"></div>
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden divide-y divide-gray-200">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-gray-200"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-32"></div>
+                    <div className="h-3 bg-gray-200 rounded w-48"></div>
+                  </div>
+                </div>
+                <div className="h-6 bg-gray-200 rounded w-20"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

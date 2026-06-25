@@ -11,6 +11,14 @@ export const generatePrd = inngest.createFunction(
   async ({ event, step }) => {
     const { featureRequestId } = event.data;
 
+    // Set state to GENERATING_PRD
+    await step.run("set-processing-state-start", async () => {
+      await prisma.featureRequest.update({
+        where: { id: featureRequestId },
+        data: { processingState: "GENERATING_PRD" }
+      });
+    });
+
     // 1. Fetch feature request and all clarification messages
     const featureRequest = await step.run("fetch-feature-request", async () => {
       return prisma.featureRequest.findUniqueOrThrow({
@@ -56,7 +64,10 @@ export const generatePrd = inngest.createFunction(
       // Update the status of the feature request to PLANNED now that it has a PRD
       await prisma.featureRequest.update({
         where: { id: featureRequest.id },
-        data: { status: "PLANNED" },
+        data: { 
+          status: "PLANNED",
+          processingState: "IDLE" // Reset state
+        },
       });
     });
 

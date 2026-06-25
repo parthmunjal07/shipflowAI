@@ -224,7 +224,7 @@ export const featureRequestRouter = router({
         where: { id: input.featureRequestId, project: { organizationId: ctx.activeOrganizationId } }
       });
 
-      // Use transaction to update both PRD and Feature Request
+      // Use transaction to update both PRD and Feature Request, and create Audit Log
       return ctx.prisma.$transaction([
         ctx.prisma.pRD.update({
           where: { featureRequestId: input.featureRequestId },
@@ -234,6 +234,17 @@ export const featureRequestRouter = router({
           where: { id: input.featureRequestId },
           data: { status: "IN_PROGRESS" },
         }),
+        ctx.prisma.auditLog.create({
+          data: {
+            organizationId: ctx.activeOrganizationId,
+            userId: ctx.session?.user?.id,
+            eventType: "APPROVAL_GRANTED",
+            metadata: { 
+              featureRequestId: input.featureRequestId,
+              action: "approvePlan"
+            },
+          }
+        })
       ]);
     }),
 

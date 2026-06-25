@@ -37,7 +37,27 @@ export default function IntegrationsPage() {
   };
 
   if (isLoading) {
-    return <div className="p-8">Loading integrations...</div>;
+    return (
+      <div className="max-w-4xl mx-auto p-8 animate-pulse">
+        <div className="h-8 bg-gray-200 rounded w-48 mb-8"></div>
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 h-64">
+          <div className="flex items-start justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
+              <div className="space-y-2">
+                <div className="h-5 bg-gray-200 rounded w-24"></div>
+                <div className="h-4 bg-gray-200 rounded w-64"></div>
+              </div>
+            </div>
+            <div className="h-9 bg-gray-200 rounded w-32"></div>
+          </div>
+          <div className="border-t border-gray-100 pt-6">
+            <div className="h-4 bg-gray-200 rounded w-48 mb-2"></div>
+            <div className="h-3 bg-gray-200 rounded w-full max-w-md"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

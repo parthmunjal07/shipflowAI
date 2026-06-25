@@ -95,10 +95,23 @@ export const billingRouter = router({
     try {
       await razorpay.subscriptions.cancel(org.razorpaySubscriptionId);
       
-      await ctx.prisma.organization.update({
-        where: { id: ctx.activeOrganizationId },
-        data: { subscriptionStatus: "cancelled" }
-      });
+      await ctx.prisma.$transaction([
+        ctx.prisma.organization.update({
+          where: { id: ctx.activeOrganizationId },
+          data: { subscriptionStatus: "cancelled" }
+        }),
+        ctx.prisma.auditLog.create({
+          data: {
+            organizationId: ctx.activeOrganizationId,
+            userId: ctx.session?.user?.id,
+            eventType: "BILLING_CANCELLED",
+            metadata: { 
+              action: "cancelSubscription",
+              razorpaySubscriptionId: org.razorpaySubscriptionId
+            },
+          }
+        })
+      ]);
 
       return { success: true };
     } catch (error) {

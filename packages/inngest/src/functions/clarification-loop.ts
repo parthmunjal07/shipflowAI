@@ -22,6 +22,13 @@ export const clarificationLoop = inngest.createFunction(
     let currentContent = content;
     let round = 0;
 
+    await step.run("set-processing-analyzing-start", async () => {
+      await prisma.featureRequest.update({
+        where: { id: featureRequestId },
+        data: { processingState: "ANALYZING_INTAKE" },
+      });
+    });
+
     // ─── Step 0: Duplicate Detection ────────────────────────────────
     const duplicateResult = await step.run("check-duplicates", async () => {
       const embedding = await generateEmbedding(`${title}\n\n${content}`);
@@ -98,6 +105,13 @@ export const clarificationLoop = inngest.createFunction(
         });
       });
 
+      await step.run("set-processing-idle-dup", async () => {
+        await prisma.featureRequest.update({
+          where: { id: featureRequestId },
+          data: { processingState: "IDLE" },
+        });
+      });
+
       // Wait for the user to decide what to do about the duplicate
       const duplicateResponse = await step.waitForEvent(
         "wait-for-duplicate-response",
@@ -112,6 +126,13 @@ export const clarificationLoop = inngest.createFunction(
         // User never responded — leave it in DUPLICATE_DETECTED status
         return { status: "duplicate-timeout", rounds: 0 };
       }
+
+      await step.run("set-processing-analyzing-dup-res", async () => {
+        await prisma.featureRequest.update({
+          where: { id: featureRequestId },
+          data: { processingState: "ANALYZING_INTAKE" },
+        });
+      });
 
       // Handle the user's duplicate decision
       const userAction = duplicateResponse.data.action;
@@ -206,6 +227,7 @@ export const clarificationLoop = inngest.createFunction(
             ? "RESOLVED"
             : "AWAITING_RESPONSE",
           status: classification.isSpecificEnough ? "UNDER_REVIEW" : "PENDING",
+          processingState: classification.isSpecificEnough ? "IDLE" : "IDLE", // AI is done
         },
       });
     });
@@ -236,6 +258,13 @@ export const clarificationLoop = inngest.createFunction(
     while (round < MAX_ROUNDS) {
       round++;
 
+      await step.run(`set-processing-idle-round-${round}`, async () => {
+        await prisma.featureRequest.update({
+          where: { id: featureRequestId },
+          data: { processingState: "IDLE" },
+        });
+      });
+
       // Wait for the user to answer
       const answerEvent = await step.waitForEvent(
         `wait-for-answer-round-${round}`,
@@ -256,6 +285,13 @@ export const clarificationLoop = inngest.createFunction(
         });
         return { status: "timeout", rounds: round };
       }
+
+      await step.run(`set-processing-analyzing-round-${round}`, async () => {
+        await prisma.featureRequest.update({
+          where: { id: featureRequestId },
+          data: { processingState: "ANALYZING_INTAKE" },
+        });
+      });
 
       // Merge user's answers into the context
       currentContent = `${currentContent}\n\n--- Clarification Round ${round} ---\n${answerEvent.data.answers}`;
@@ -283,6 +319,7 @@ export const clarificationLoop = inngest.createFunction(
             status: classification.isSpecificEnough
               ? "UNDER_REVIEW"
               : "PENDING",
+            processingState: "IDLE", // AI is done for this round
           },
         });
       });
@@ -316,6 +353,7 @@ export const clarificationLoop = inngest.createFunction(
         data: {
           clarificationStatus: "RESOLVED",
           status: "UNDER_REVIEW",
+          processingState: "IDLE",
         },
       });
     });

@@ -1,0 +1,70 @@
+name: Automated Database Backup
+
+on:
+  schedule:
+    # Run at 2:00 AM UTC every day
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    # Allow manual triggering from the GitHub Actions UI
+
+jobs:
+  backup:
+    runs-name: Database Backup
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL Client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-common postgresql-client
+
+      - name: Create Backup Directory
+        run: mkdir -p backups
+
+      - name: Generate Backup (pg_dump)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "Error: DATABASE_URL secret is not set."
+            exit 1
+          fi
+          
+          # Generate a timestamped filename
+          TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+          FILENAME="shipflow_backup_${TIMESTAMP}.sql.gz"
+          
+          echo "Starting logical backup..."
+          
+          # Use pg_dump with custom format, or plain text compressed
+          # -Z 9 gives maximum gzip compression
+          # -O prevents saving object ownership (important for restores across environments)
+          # -x prevents saving privileges
+          pg_dump --dbname="$DATABASE_URL" -O -x | gzip -9 > "backups/${FILENAME}"
+          
+          echo "Backup complete: backups/${FILENAME}"
+          
+          # Save filename for next step
+          echo "BACKUP_FILE=${FILENAME}" >> $GITHUB_ENV
+
+      - name: Upload Backup as Workflow Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BACKUP_FILE }}
+          path: backups/${{ env.BACKUP_FILE }}
+          retention-days: 30 # GitHub retains artifacts for up to 90 days (default), we set 30 for cost/storage hygiene
+
+      # OPTIONAL: Upload to AWS S3 (Uncomment and configure secrets to enable)
+      # - name: Configure AWS Credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: us-east-1
+      #
+      # - name: Copy Backup to S3
+      #   run: |
+      #     aws s3 cp backups/${{ env.BACKUP_FILE }} s3://${{ secrets.AWS_S3_BACKUP_BUCKET_NAME }}/database/prod/

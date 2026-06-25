@@ -61,7 +61,36 @@ export function BillingClient() {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>;
+    return (
+      <div className="space-y-10 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="border-b border-gray-200 pb-5">
+          <div className="h-8 bg-gray-200 rounded w-48 mb-3"></div>
+          <div className="h-4 bg-gray-200 rounded w-96"></div>
+        </div>
+
+        {/* Plan Card Skeleton */}
+        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+          <div className="p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+            <div className="space-y-3 w-full max-w-xl">
+              <div className="h-6 bg-gray-200 rounded w-32"></div>
+              <div className="h-4 bg-gray-200 rounded w-full"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+            </div>
+            <div className="h-10 bg-gray-200 rounded w-32 shrink-0"></div>
+          </div>
+        </div>
+
+        {/* Usage Skeletons */}
+        <div>
+          <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm h-32"></div>
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm h-32"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!billingInfo) return null;

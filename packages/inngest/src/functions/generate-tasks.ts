@@ -8,6 +8,13 @@ export const generateTasks = inngest.createFunction(
   async ({ event, step }) => {
     const { featureRequestId } = event.data;
 
+    await step.run("set-processing-state-start", async () => {
+      await prisma.featureRequest.update({
+        where: { id: featureRequestId },
+        data: { processingState: "GENERATING_TASKS" }
+      });
+    });
+
     // 1. Fetch the Feature Request and PRD
     const data = await step.run("fetch-prd-data", async () => {
       const fr = await prisma.featureRequest.findUniqueOrThrow({
@@ -69,7 +76,10 @@ export const generateTasks = inngest.createFunction(
 
         await tx.featureRequest.update({
           where: { id: featureRequestId },
-          data: { status: "PLANNED" },
+          data: { 
+            status: "PLANNED",
+            processingState: "IDLE" 
+          },
         });
       });
     });

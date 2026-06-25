@@ -28,30 +28,64 @@ export async function POST(req: Request) {
       const currentEnd = new Date(event.payload.subscription.entity.current_end * 1000);
       const currentStart = new Date(event.payload.subscription.entity.current_start * 1000);
       
-      // Upgrade to PRO and reset usage
-      await prisma.organization.updateMany({
-        where: { razorpaySubscriptionId: subscriptionId },
-        data: {
-          plan: "PRO",
-          subscriptionStatus: "active",
-          currentPeriodStart: currentStart,
-          currentPeriodEnd: currentEnd,
-          aiReviewsUsed: 0, // Reset for the new cycle!
-        }
+      // Find organization first
+      const org = await prisma.organization.findFirst({
+        where: { razorpaySubscriptionId: subscriptionId }
       });
+
+      if (org) {
+        await prisma.$transaction([
+          prisma.organization.update({
+            where: { id: org.id },
+            data: {
+              plan: "PRO",
+              subscriptionStatus: "active",
+              currentPeriodStart: currentStart,
+              currentPeriodEnd: currentEnd,
+              aiReviewsUsed: 0, // Reset for the new cycle!
+            }
+          }),
+          prisma.auditLog.create({
+            data: {
+              organizationId: org.id,
+              eventType: "BILLING_UPGRADED",
+              metadata: { 
+                action: event.event,
+                razorpaySubscriptionId: subscriptionId
+              },
+            }
+          })
+        ]);
+      }
     }
 
     if (event.event === "subscription.cancelled" || event.event === "subscription.halted") {
       const subscriptionId = event.payload.subscription.entity.id;
-      
-      // Downgrade to FREE
-      await prisma.organization.updateMany({
-        where: { razorpaySubscriptionId: subscriptionId },
-        data: {
-          plan: "FREE",
-          subscriptionStatus: "cancelled",
-        }
+      const org = await prisma.organization.findFirst({
+        where: { razorpaySubscriptionId: subscriptionId }
       });
+
+      if (org) {
+        await prisma.$transaction([
+          prisma.organization.update({
+            where: { id: org.id },
+            data: {
+              plan: "FREE",
+              subscriptionStatus: "cancelled",
+            }
+          }),
+          prisma.auditLog.create({
+            data: {
+              organizationId: org.id,
+              eventType: "BILLING_CANCELLED",
+              metadata: { 
+                action: event.event,
+                razorpaySubscriptionId: subscriptionId
+              },
+            }
+          })
+        ]);
+      }
     }
 
     return NextResponse.json({ success: true });

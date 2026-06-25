@@ -4,6 +4,7 @@ import { auth } from "@repo/auth";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
+import { CheckCircle2, Rocket } from "lucide-react";
 
 export default async function ProjectDashboardPage({
   params,
@@ -73,8 +74,14 @@ export default async function ProjectDashboardPage({
           </div>
           
           {pendingApprovals.length === 0 ? (
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center text-gray-500 italic">
-              No features are currently waiting for human approval.
+            <div className="flex flex-col items-center justify-center py-16 px-4 bg-gray-50/50 border border-gray-200 border-dashed rounded-2xl">
+              <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mb-4">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">You're all caught up!</h3>
+              <p className="text-gray-500 text-center max-w-sm">
+                No feature requests are waiting for human approval right now.
+              </p>
             </div>
           ) : (
             <div className="grid gap-4">
@@ -117,8 +124,14 @@ export default async function ProjectDashboardPage({
           </div>
 
           {inProgress.length === 0 ? (
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center text-gray-500 italic">
-              No features currently in development.
+            <div className="flex flex-col items-center justify-center py-16 px-4 bg-gray-50/50 border border-gray-200 border-dashed rounded-2xl">
+              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4">
+                <Rocket className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Nothing in flight</h3>
+              <p className="text-gray-500 text-center max-w-sm">
+                No features are currently in active development. Approve a PRD plan to get started.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

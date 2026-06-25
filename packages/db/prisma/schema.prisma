@@ -23,6 +23,7 @@ model User {
   invitations   Invitation[]
   featureRequests FeatureRequest[]
   assignedTasks   Task[]
+  auditLogs       AuditLog[]
 
   @@map("user")
 }
@@ -83,6 +84,7 @@ model Organization {
   invitations Invitation[]
   projects    Project[]
   githubInstallation GithubInstallation?
+  auditLogs   AuditLog[]
 
   // Billing & Usage
   plan                   String   @default("FREE")
@@ -164,6 +166,13 @@ enum ClarificationStatus {
   RESOLVED
 }
 
+enum ProcessingState {
+  IDLE
+  ANALYZING_INTAKE
+  GENERATING_PRD
+  GENERATING_TASKS
+}
+
 model FeatureRequest {
   id             String               @id @default(cuid())
   title          String
@@ -181,6 +190,7 @@ model FeatureRequest {
   missingDimensions    String[]            @default([])
   followUpQuestions    String[]            @default([])
   clarificationStatus  ClarificationStatus @default(NONE)
+  processingState      ProcessingState     @default(IDLE)
   clarificationMessages ClarificationMessage[]
   embedding            Unsupported("vector(1024)")?
 
@@ -402,3 +412,27 @@ model ReviewIssue {
 
   @@map("review_issue")
 }
+
+enum AuditEventType {
+  APPROVAL_GRANTED
+  ROLE_CHANGED
+  BILLING_UPGRADED
+  BILLING_CANCELLED
+  MEMBER_INVITED
+  MEMBER_REMOVED
+}
+
+model AuditLog {
+  id             String         @id @default(cuid())
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String?
+  user           User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  eventType      AuditEventType
+  metadata       Json?          // Dynamic payload describing the event (e.g. { "featureRequestId": "...", "role": "admin" })
+  ipAddress      String?
+  createdAt      DateTime       @default(now())
+
+  @@map("audit_log")
+}
+
