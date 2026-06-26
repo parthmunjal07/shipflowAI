@@ -5,8 +5,9 @@
   "main": "./index.ts",
   "types": "./index.ts",
   "dependencies": {
+    "@repo/db": "workspace:*",
     "better-auth": "^1.1.0",
-    "@repo/db": "workspace:*"
+    "resend": "^6.14.0"
   },
   "devDependencies": {
     "typescript": "5.9.2"
