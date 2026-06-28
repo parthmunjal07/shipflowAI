@@ -1,12 +1,17 @@
 "use client";
 
-import { ChevronDown, Zap, CheckCircle2, RefreshCw, Check, Loader2 } from "lucide-react";
+import { ChevronDown, Zap, CheckCircle2, RefreshCw, Check, Loader2, AlertCircle } from "lucide-react";
 import React from "react";
 import { trpc } from "../../../../../trpc/client";
+import { useRouter } from "next/navigation";
 
 export default function PRReviewPage({ params }: { params: Promise<{ workspaceId: string, prId: string }> }) {
   const { workspaceId, prId } = React.use(params);
+  const router = useRouter();
   const { data: pr, isLoading, isError } = trpc.pullRequest.getById.useQuery({ id: prId });
+  const rerunReviewMutation = trpc.pullRequest.rerunReview.useMutation({
+    onSuccess: () => router.refresh()
+  });
 
   if (isLoading) {
     return (
@@ -81,6 +86,20 @@ export default function PRReviewPage({ params }: { params: Promise<{ workspaceId
           </div>
         </div>
       </div>
+
+      {pr.reviewStatus === "AWAITING_TASK_LINK" && (
+        <div className="bg-amber-500/10 border-y border-amber-500/20 px-8 py-4 shrink-0 flex items-start gap-4">
+          <div className="p-2 bg-amber-500/20 rounded-lg shrink-0 mt-0.5">
+            <AlertCircle className="w-5 h-5 text-amber-500" />
+          </div>
+          <div>
+            <h3 className="text-[15px] font-bold text-amber-500 mb-1">Awaiting Task Link</h3>
+            <p className="text-[14px] text-amber-500/90 leading-relaxed">
+              This pull request does not have a linked ShipFlow Task. To trigger the automated AI review, please update your GitHub pull request description to include the task ID (e.g., <strong>SF-{pr.number}</strong> or whatever your task ID is) and the review will begin automatically.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Main Split View */}
       <div className="flex-1 flex overflow-hidden">
@@ -158,9 +177,13 @@ export default function PRReviewPage({ params }: { params: Promise<{ workspaceId
                 <CheckCircle2 className="w-4 h-4" />
                 Request Human Approval
               </button>
-              <button className="flex items-center justify-center gap-2 px-6 py-3 bg-transparent hover:bg-white/[0.03] border border-[#27272a] transition-colors text-white rounded-lg text-[14px] font-bold shrink-0">
-                <RefreshCw className="w-4 h-4" />
-                Re-run AI Review
+              <button 
+                onClick={() => rerunReviewMutation.mutate({ pullRequestId: pr.id })}
+                disabled={rerunReviewMutation.isPending}
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-transparent hover:bg-white/[0.03] border border-[#27272a] transition-colors text-white rounded-lg text-[14px] font-bold shrink-0 disabled:opacity-50"
+              >
+                {rerunReviewMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                {rerunReviewMutation.isPending ? "Re-running..." : "Re-run AI Review"}
               </button>
             </div>
             {blockingIssues.length > 0 && (

@@ -4,6 +4,7 @@ import { auth } from "@repo/auth";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { KanbanBoard, KanbanTask } from "../../../../../../components/kanban-board";
+import { PlanApprovalBanner } from "../../../../../../components/plan-approval-banner";
 import Link from "next/link";
 import { Filter } from "lucide-react";
 
@@ -103,6 +104,11 @@ export default async function RequestTasksPage({
             </button>
           </div>
         </div>
+
+        {/* Plan Approval Banner */}
+        {featureRequest.status === "PLANNED" && (
+          <PlanApprovalBanner featureRequestId={featureRequest.id} />
+        )}
 
         {/* Kanban Board */}
         <KanbanBoard 

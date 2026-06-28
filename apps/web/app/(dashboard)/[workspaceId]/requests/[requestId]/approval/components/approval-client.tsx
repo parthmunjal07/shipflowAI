@@ -84,7 +84,20 @@ export function ApprovalClient({
   const router = useRouter();
   const utils = trpc.useUtils();
   
-  const updateStatusMutation = trpc.featureRequest.updateStatus.useMutation({
+  const shipFeatureMutation = trpc.featureRequest.shipFeature.useMutation({
+    onSuccess: () => {
+      router.refresh();
+      setIsSubmitting(false);
+      utils.featureRequest.getById.invalidate({ id: featureRequest.id });
+    },
+    onError: (err: any) => {
+      console.error(err);
+      setIsSubmitting(false);
+      alert("Failed to ship feature: " + err.message);
+    }
+  });
+
+  const requestRevisionsMutation = trpc.featureRequest.requestRevisions.useMutation({
     onSuccess: () => {
       router.refresh();
       setIsSubmitting(false);
@@ -94,15 +107,14 @@ export function ApprovalClient({
     onError: (err: any) => {
       console.error(err);
       setIsSubmitting(false);
-      alert("Failed to update status: " + err.message);
+      alert("Failed to request revisions: " + err.message);
     }
   });
 
   const handleShip = async () => {
     setIsSubmitting(true);
-    await updateStatusMutation.mutateAsync({
-      id: featureRequest.id,
-      status: "SHIPPED"
+    await shipFeatureMutation.mutateAsync({
+      id: featureRequest.id
     });
   };
 
@@ -114,25 +126,28 @@ export function ApprovalClient({
     }
     
     setIsSubmitting(true);
-    await updateStatusMutation.mutateAsync({
+    await requestRevisionsMutation.mutateAsync({
       id: featureRequest.id,
-      status: "IN_PROGRESS",
-      approvalNotes: rejectReason.trim(),
+      reason: rejectReason.trim(),
     });
   };
 
   // Stats calculation
   const totalTasks = featureRequest.tasks.length;
-  const doneTasks = featureRequest.tasks.filter((t: any) => t.status === "DONE").length;
-  const inProgressTasks = featureRequest.tasks.filter((t: any) => t.status === "IN_PROGRESS").length;
-  const todoTasks = totalTasks - doneTasks - inProgressTasks;
+  const doneTasks = featureRequest.tasks.filter((t: any) => t.status === "DONE");
+  const doneTasksCount = doneTasks.length;
+  const inProgressTasksCount = featureRequest.tasks.filter((t: any) => t.status === "IN_PROGRESS").length;
+  const todoTasksCount = totalTasks - doneTasksCount - inProgressTasksCount;
+
+  // Aggregate genuine satisfied Acceptance Criteria from all DONE tasks
+  const aggregatedSatisfiedAC = doneTasks.flatMap((t: any) => t.satisfiedAcceptanceCriteria || []);
 
   // PR fetching (from Tasks)
   const allPrs = featureRequest.tasks.flatMap((t: any) => t.pullRequests || []);
   // Deduplicate PRs by id
   const uniquePrs = Array.from(new Map(allPrs.map((pr: any) => [pr.id, pr])).values()) as any[];
   
-  const allChecksPassed = doneTasks === totalTasks && uniquePrs.every((pr: any) => pr.reviewStatus === "APPROVED");
+  const allChecksPassed = doneTasksCount === totalTasks && uniquePrs.every((pr: any) => pr.reviewStatus === "APPROVED");
 
   return (
     <div className="flex-1 h-full bg-[#0A0D14] overflow-y-auto relative">
@@ -214,9 +229,8 @@ export function ApprovalClient({
                 <h4 className="text-[14px] font-bold text-white mb-3">Acceptance Criteria</h4>
                 <ul className="space-y-2.5 mb-6">
                   {featureRequest.prd.acceptanceCriteria.map((ac: string, idx: number) => {
-                    // Simple mock for AC satisfied check
-                    const satisfied = doneTasks > 0 && Math.random() > 0.3; // Randomly mocked if tasks done for now, actually we should cross reference with task.satisfiedAcceptanceCriteria
-                    return <AcItem key={idx} text={ac} satisfied={true} />
+                    const satisfied = aggregatedSatisfiedAC.includes(ac);
+                    return <AcItem key={idx} text={ac} satisfied={satisfied} />
                   })}
                 </ul>
               </>
@@ -227,14 +241,14 @@ export function ApprovalClient({
             title="Task Completion" 
             headerExtra={
               <div className="flex gap-3 text-[13px] text-[#71717a] font-medium">
-                <span>To Do: <strong className="text-[#a1a1aa]">{todoTasks}</strong></span>
-                <span>In Progress: <strong className="text-[#a1a1aa]">{inProgressTasks}</strong></span>
-                <span>Done: <strong className="text-[#a1a1aa]">{doneTasks}</strong></span>
+                <span>To Do: <strong className="text-[#a1a1aa]">{todoTasksCount}</strong></span>
+                <span>In Progress: <strong className="text-[#a1a1aa]">{inProgressTasksCount}</strong></span>
+                <span>Done: <strong className="text-[#a1a1aa]">{doneTasksCount}</strong></span>
               </div>
             }
           >
-            <div className={`text-[14px] font-bold mb-4 ${doneTasks === totalTasks ? 'text-emerald-500' : 'text-amber-500'}`}>
-              {doneTasks}/{totalTasks} tasks completed
+            <div className={`text-[14px] font-bold mb-4 ${doneTasksCount === totalTasks ? 'text-emerald-500' : 'text-amber-500'}`}>
+              {doneTasksCount}/{totalTasks} tasks completed
             </div>
             <ul className="space-y-3">
               {featureRequest.tasks.map((task: any) => (

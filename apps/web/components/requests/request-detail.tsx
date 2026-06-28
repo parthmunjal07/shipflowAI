@@ -1,9 +1,30 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, LayoutList } from "lucide-react";
+import { ArrowRight, CheckCircle2, LayoutList, Loader2, FileWarning } from "lucide-react";
 import { format } from "date-fns";
 import { PrdEditor } from "../prd-editor";
+import { useState } from "react";
+import { trpc } from "../../trpc/client";
+import { useRouter } from "next/navigation";
 
 export function RequestDetail({ request, workspaceId }: { request: any, workspaceId: string }) {
+  const [clarificationText, setClarificationText] = useState("");
+  const router = useRouter();
+  
+  const submitClarification = trpc.featureRequest.submitClarification.useMutation({
+    onSuccess: () => {
+      setClarificationText("");
+      router.refresh();
+    }
+  });
+
+  const respondToDuplicate = trpc.featureRequest.respondToDuplicate.useMutation({
+    onSuccess: () => {
+      router.refresh();
+    }
+  });
+
   if (!request) {
     return (
       <div className="flex-1 flex flex-col h-full bg-[#0A0D14] items-center justify-center">
@@ -65,6 +86,47 @@ export function RequestDetail({ request, workspaceId }: { request: any, workspac
           </div>
         </div>
 
+        {/* Duplicate Detection Alert */}
+        {request.status === "DUPLICATE_DETECTED" && (
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 mb-8">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-amber-500/20 rounded-lg">
+                <FileWarning className="w-5 h-5 text-amber-500" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-[15px] font-semibold text-amber-500 mb-2">Possible Duplicate Detected</h3>
+                <p className="text-[14px] text-amber-500/90 leading-relaxed mb-4">
+                  {request.duplicateNote || "This request appears to be very similar to an existing feature request."}
+                </p>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => respondToDuplicate.mutate({ featureRequestId: request.id, action: "merge" })}
+                    disabled={respondToDuplicate.isPending}
+                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 transition-colors text-white text-[13px] font-medium rounded-lg shadow-sm disabled:opacity-50"
+                  >
+                    Merge & Close
+                  </button>
+                  <button 
+                    onClick={() => respondToDuplicate.mutate({ featureRequestId: request.id, action: "proceed" })}
+                    disabled={respondToDuplicate.isPending}
+                    className="px-4 py-2 bg-[#1A1E29] hover:bg-[#27272a] transition-colors text-white text-[13px] font-medium rounded-lg disabled:opacity-50"
+                  >
+                    Not a Duplicate (Proceed)
+                  </button>
+                  {/* Note: 'revise' would typically open a modal or form, keeping it simple here for now */}
+                  <button 
+                    onClick={() => respondToDuplicate.mutate({ featureRequestId: request.id, action: "revise", revisedContent: request.content + " (Revised to differentiate)" })}
+                    disabled={respondToDuplicate.isPending}
+                    className="px-4 py-2 bg-transparent border border-[#27272a] hover:bg-white/[0.03] transition-colors text-[#a1a1aa] hover:text-white text-[13px] font-medium rounded-lg disabled:opacity-50"
+                  >
+                    Auto-Revise
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Original Request Box */}
         <div className="bg-[#13161F] border border-[#27272a]/50 rounded-2xl p-6 mb-8 relative">
           <div className="text-[10px] font-bold text-[#71717a] tracking-widest uppercase mb-4">
@@ -106,16 +168,33 @@ export function RequestDetail({ request, workspaceId }: { request: any, workspac
             </div>
           )}
 
-          {/* If PENDING, show a mock input box for the user to answer the AI */}
-          {request.status === "PENDING" && (
+          {/* If PENDING or UNDER_REVIEW, show an input box for the user to answer the AI */}
+          {(request.status === "PENDING" || request.status === "UNDER_REVIEW") && (
             <div className="flex flex-col gap-1 items-start w-full mt-2">
               <div className="w-full relative">
                 <input 
                   type="text" 
+                  value={clarificationText}
+                  onChange={(e) => setClarificationText(e.target.value)}
                   placeholder="Type your answer..." 
-                  className="w-full bg-[#0A0D14] border border-[#27272a] rounded-xl py-3 pl-4 pr-24 text-[14px] text-white placeholder:text-[#52525b] focus:outline-none focus:border-blue-500/50 transition-colors"
+                  disabled={submitClarification.isPending}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && clarificationText.trim()) {
+                      submitClarification.mutate({ featureRequestId: request.id, answers: clarificationText });
+                    }
+                  }}
+                  className="w-full bg-[#0A0D14] border border-[#27272a] rounded-xl py-3 pl-4 pr-24 text-[14px] text-white placeholder:text-[#52525b] focus:outline-none focus:border-blue-500/50 transition-colors disabled:opacity-50"
                 />
-                <button className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-lg text-[13px] font-medium transition-colors">
+                <button 
+                  onClick={() => {
+                    if (clarificationText.trim()) {
+                      submitClarification.mutate({ featureRequestId: request.id, answers: clarificationText });
+                    }
+                  }}
+                  disabled={submitClarification.isPending || !clarificationText.trim()}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:text-gray-300 text-white px-4 py-1.5 rounded-lg text-[13px] font-medium transition-colors flex items-center gap-2"
+                >
+                  {submitClarification.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
                   Send
                 </button>
               </div>
