@@ -45,7 +45,50 @@ export const featureRequestRouter = router({
       // 3. Store the embedding via raw SQL
       await storeEmbedding(ctx.prisma, featureRequest.id, embedding);
 
-      // 4. Fire Inngest event to kick off the clarification workflow
+      // Fire Inngest event to kick off the clarification workflow
+      await inngest.send({
+        name: "shipflow/feature-request.created",
+        data: {
+          featureRequestId: featureRequest.id,
+          projectId: project.id,
+          title: input.title,
+          content: input.content,
+        },
+      });
+
+      return { featureRequest };
+    }),
+
+  createInternal: orgProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        title: z.string(),
+        content: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Verify project belongs to organization
+      const project = await ctx.prisma.project.findFirstOrThrow({
+        where: { id: input.projectId, organizationId: ctx.activeOrganizationId },
+      });
+
+      const textForAI = `${input.title}\n\n${input.content}`;
+      const embedding = await generateEmbedding(textForAI);
+
+      const featureRequest = await ctx.prisma.featureRequest.create({
+        data: {
+          title: input.title,
+          content: input.content,
+          projectId: project.id,
+          source: "TICKET", // or some internal source
+          createdById: ctx.session?.user?.id,
+        },
+      });
+
+      await storeEmbedding(ctx.prisma, featureRequest.id, embedding);
+
+      // Fire Inngest event
       await inngest.send({
         name: "shipflow/feature-request.created",
         data: {

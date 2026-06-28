@@ -43,19 +43,30 @@ export async function GET(request: Request) {
     if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
-    // In a full implementation, check user's role in the org via member query.
-    // For now, if they have an active session in that org, we accept it.
-    if (session.session.activeOrganizationId !== targetOrgId) {
-       return NextResponse.json({ error: "Unauthorized. Active organization mismatch." }, { status: 403 });
+    
+    // Check user's role in the org via member query.
+    const member = await (prisma as any).member.findFirst({
+      where: {
+        organizationId: targetOrgId,
+        userId: session.user.id
+      }
+    });
+
+    // If they aren't a member AND their active session org doesn't match, reject
+    if (!member && session.session.activeOrganizationId !== targetOrgId) {
+       return NextResponse.json({ error: "Unauthorized. Active organization mismatch or not a member." }, { status: 403 });
     }
 
     // Optional: delete state to prevent reuse
     await (prisma as any).githubInstallState.delete({ where: { id: stateRecord.id } });
   }
 
-  // 3. Security Check: Prevent claiming an already claimed installation
+  // 3. Security Check & Fallback
   if (existingInstallation && existingInstallation.organizationId) {
-    if (existingInstallation.organizationId !== targetOrgId) {
+    if (!targetOrgId) {
+      // If no state was provided (e.g. manual resync), use the existing organization
+      targetOrgId = existingInstallation.organizationId;
+    } else if (existingInstallation.organizationId !== targetOrgId) {
       // Security fault: Someone is trying to hijack an installation belonging to another org
       return NextResponse.json(
         { error: "This installation is already claimed by another organization." },
@@ -145,7 +156,11 @@ export async function GET(request: Request) {
 
   // Redirect to Integrations UI
   if (targetOrgId) {
-    return NextResponse.redirect(new URL(`/${targetOrgId}/settings?tab=integrations`, request.url));
+    const org = await prisma.organization.findUnique({
+      where: { id: targetOrgId }
+    });
+    const slug = org?.slug || 'default';
+    return NextResponse.redirect(new URL(`/${slug}/settings?tab=integrations`, request.url));
   } else {
     // Fallback if no specific org state was provided
     return NextResponse.redirect(new URL("/default/settings?tab=integrations", request.url));

@@ -1,9 +1,69 @@
 "use client";
 
 import React from "react";
-import { Check, FileText } from "lucide-react";
+import { Check, FileText, Loader2 } from "lucide-react";
+import { trpc } from "../../../../trpc/client";
 
 export default function BillingPage() {
+  const { data: billingInfo, isLoading, refetch } = trpc.billing.getSubscriptionInfo.useQuery();
+  
+  const createCheckoutMutation = trpc.billing.createCheckoutOrder.useMutation({
+    onSuccess: (data) => {
+      alert(`Checkout order created! Subscription ID: ${data.subscriptionId}`);
+      // Here you would typically initialize Razorpay Checkout
+      refetch();
+    },
+    onError: (error) => {
+      alert(`Error creating checkout order: ${error.message}`);
+    }
+  });
+
+  const cancelSubscriptionMutation = trpc.billing.cancelSubscription.useMutation({
+    onSuccess: () => {
+      alert("Subscription cancelled successfully.");
+      refetch();
+    },
+    onError: (error) => {
+      alert(`Error cancelling subscription: ${error.message}`);
+    }
+  });
+
+  const handleUpgrade = () => {
+    createCheckoutMutation.mutate();
+  };
+
+  const handleCancel = () => {
+    if (confirm("Are you sure you want to cancel your subscription?")) {
+      cancelSubscriptionMutation.mutate();
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 h-full bg-[#0A0D14] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#71717a] animate-spin" />
+      </div>
+    );
+  }
+
+  if (!billingInfo) {
+    return (
+      <div className="flex-1 h-full bg-[#0A0D14] flex items-center justify-center text-white">
+        Failed to load billing information.
+      </div>
+    );
+  }
+
+  const { plan, subscriptionStatus, usage, limits, orgName, currentPeriodEnd } = billingInfo;
+
+  const aiReviewsPercent = limits.aiReviews > 0 ? (usage.aiReviewsUsed / limits.aiReviews) * 100 : 0;
+  const reposPercent = limits.repositories > 0 ? (usage.repositoriesLinked / limits.repositories) * 100 : 0;
+  const membersPercent = limits.members > 0 ? (usage.membersCount / limits.members) * 100 : 0;
+
+  const isPro = plan === "PRO";
+  const planName = isPro ? "Enterprise" : "Growth";
+  const planPrice = isPro ? "$999/mo" : "$0/mo";
+
   return (
     <div className="flex-1 h-full bg-[#0A0D14] overflow-y-auto">
       <div className="max-w-4xl mx-auto w-full p-8 lg:p-12 pb-32">
@@ -11,7 +71,7 @@ export default function BillingPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="text-[13px] text-[#71717a] mb-2 flex items-center gap-1.5">
-            <span className="hover:text-white cursor-pointer transition-colors">Acme Corp Engineering</span>
+            <span className="hover:text-white cursor-pointer transition-colors">{orgName}</span>
             <span className="text-[10px]">&gt;</span>
             <span className="text-[#a1a1aa]">Billing</span>
           </div>
@@ -28,25 +88,45 @@ export default function BillingPage() {
           <div className="p-8 flex items-center justify-between">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h2 className="text-[24px] font-bold text-white">Growth</h2>
-                <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded text-[11px] font-bold tracking-wide uppercase">
-                  Active
+                <h2 className="text-[24px] font-bold text-white">{planName}</h2>
+                <span className={`px-2 py-0.5 border rounded text-[11px] font-bold tracking-wide uppercase ${
+                  subscriptionStatus === "active" 
+                    ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
+                    : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                }`}>
+                  {subscriptionStatus}
                 </span>
               </div>
               <div className="text-[14px] text-[#a1a1aa]">
-                Billed monthly · $299/mo
+                Billed monthly · {planPrice}
                 <br />
-                <span className="text-[#71717a]">Next invoice: May 28, 2024</span>
+                {currentPeriodEnd && (
+                  <span className="text-[#71717a]">
+                    Next invoice: {new Date(currentPeriodEnd).toLocaleDateString()}
+                  </span>
+                )}
               </div>
             </div>
             
             <div className="flex items-center gap-4">
-              <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 transition-colors text-white text-[14px] font-bold rounded-lg shadow-sm">
-                Upgrade to Enterprise
-              </button>
-              <button className="px-4 py-2.5 bg-transparent hover:bg-white/[0.03] transition-colors text-white text-[14px] font-bold rounded-lg">
-                Manage Subscription
-              </button>
+              {!isPro && (
+                <button 
+                  onClick={handleUpgrade}
+                  disabled={createCheckoutMutation.isPending}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 transition-colors text-white text-[14px] font-bold rounded-lg shadow-sm disabled:opacity-50"
+                >
+                  {createCheckoutMutation.isPending ? "Processing..." : "Upgrade to Enterprise"}
+                </button>
+              )}
+              {isPro && subscriptionStatus === "active" && (
+                <button 
+                  onClick={handleCancel}
+                  disabled={cancelSubscriptionMutation.isPending}
+                  className="px-4 py-2.5 bg-transparent hover:bg-white/[0.03] transition-colors text-white text-[14px] font-bold rounded-lg border border-red-500/30 hover:border-red-500/50 hover:text-red-400"
+                >
+                  {cancelSubscriptionMutation.isPending ? "Cancelling..." : "Cancel Subscription"}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -54,26 +134,33 @@ export default function BillingPage() {
         {/* Usage This Month */}
         <div className="mb-12">
           <h3 className="text-[18px] font-bold text-white mb-1">Usage This Month</h3>
-          <p className="text-[13px] text-[#71717a] mb-6">Resets May 28</p>
+          {currentPeriodEnd && (
+            <p className="text-[13px] text-[#71717a] mb-6">
+              Resets {new Date(currentPeriodEnd).toLocaleDateString()}
+            </p>
+          )}
           
           <div className="grid grid-cols-3 gap-6">
             {/* AI Review Credits */}
             <div className="bg-[#13161F] border border-[#27272a]/50 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-[14px] font-bold text-white">AI Review Credits</h4>
-                <span className="px-2 py-0.5 bg-amber-500/10 text-amber-500 rounded text-[10px] font-bold tracking-wide uppercase">
-                  Running low
-                </span>
+                {limits.aiReviews !== -1 && aiReviewsPercent >= 80 && (
+                  <span className="px-2 py-0.5 bg-amber-500/10 text-amber-500 rounded text-[10px] font-bold tracking-wide uppercase">
+                    Running low
+                  </span>
+                )}
               </div>
               <div className="mb-4">
-                <span className="text-[28px] font-bold text-white">847</span>
-                <span className="text-[14px] font-medium text-[#71717a]"> / 1,000</span>
+                <span className="text-[28px] font-bold text-white">{usage.aiReviewsUsed}</span>
+                <span className="text-[14px] font-medium text-[#71717a]"> / {limits.aiReviews === -1 ? "∞" : limits.aiReviews}</span>
               </div>
               <div className="h-1.5 w-full bg-[#27272a] rounded-full overflow-hidden mb-2">
-                <div className="h-full bg-blue-600 rounded-full" style={{ width: '84.7%' }}></div>
+                <div className="h-full bg-blue-600 rounded-full" style={{ width: `${limits.aiReviews === -1 ? 10 : Math.min(aiReviewsPercent, 100)}%` }}></div>
               </div>
-              <div className="text-[12px] text-[#71717a] mb-1">153 remaining</div>
-              <div className="text-[12px] font-medium text-amber-500">Running low — consider upgrading</div>
+              {limits.aiReviews !== -1 && (
+                <div className="text-[12px] text-[#71717a] mb-1">{limits.aiReviews - usage.aiReviewsUsed} remaining</div>
+              )}
             </div>
 
             {/* Connected Repositories */}
@@ -82,13 +169,15 @@ export default function BillingPage() {
                 <h4 className="text-[14px] font-bold text-white">Connected Repositories</h4>
               </div>
               <div className="mb-4">
-                <span className="text-[28px] font-bold text-white">3</span>
-                <span className="text-[14px] font-medium text-[#71717a]"> / 5</span>
+                <span className="text-[28px] font-bold text-white">{usage.repositoriesLinked}</span>
+                <span className="text-[14px] font-medium text-[#71717a]"> / {limits.repositories === -1 ? "∞" : limits.repositories}</span>
               </div>
               <div className="h-1.5 w-full bg-[#27272a] rounded-full overflow-hidden mb-2">
-                <div className="h-full bg-blue-600 rounded-full" style={{ width: '60%' }}></div>
+                <div className="h-full bg-blue-600 rounded-full" style={{ width: `${limits.repositories === -1 ? 10 : Math.min(reposPercent, 100)}%` }}></div>
               </div>
-              <div className="text-[12px] text-[#71717a]">2 remaining</div>
+              {limits.repositories !== -1 && (
+                <div className="text-[12px] text-[#71717a]">{limits.repositories - usage.repositoriesLinked} remaining</div>
+              )}
             </div>
 
             {/* Team Members */}
@@ -97,13 +186,15 @@ export default function BillingPage() {
                 <h4 className="text-[14px] font-bold text-white">Team Members</h4>
               </div>
               <div className="mb-4">
-                <span className="text-[28px] font-bold text-white">14</span>
-                <span className="text-[14px] font-medium text-[#71717a]"> / 20</span>
+                <span className="text-[28px] font-bold text-white">{usage.membersCount}</span>
+                <span className="text-[14px] font-medium text-[#71717a]"> / {limits.members === -1 ? "∞" : limits.members}</span>
               </div>
               <div className="h-1.5 w-full bg-[#27272a] rounded-full overflow-hidden mb-2">
-                <div className="h-full bg-blue-600 rounded-full" style={{ width: '70%' }}></div>
+                <div className="h-full bg-blue-600 rounded-full" style={{ width: `${limits.members === -1 ? 10 : Math.min(membersPercent, 100)}%` }}></div>
               </div>
-              <div className="text-[12px] text-[#71717a]">6 remaining</div>
+              {limits.members !== -1 && (
+                <div className="text-[12px] text-[#71717a]">{limits.members - usage.membersCount} remaining</div>
+              )}
             </div>
           </div>
         </div>
@@ -143,26 +234,7 @@ export default function BillingPage() {
         <div className="mb-8">
           <h3 className="text-[18px] font-bold text-white mb-6">Invoice History</h3>
           
-          <div className="bg-[#13161F] border border-[#27272a]/50 rounded-xl overflow-hidden mb-8">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-[#27272a]/50 bg-[#1A1E29]/30">
-                  <th className="px-6 py-4 text-[11px] font-bold text-[#71717a] uppercase tracking-widest">Date</th>
-                  <th className="px-6 py-4 text-[11px] font-bold text-[#71717a] uppercase tracking-widest">Plan</th>
-                  <th className="px-6 py-4 text-[11px] font-bold text-[#71717a] uppercase tracking-widest">Amount</th>
-                  <th className="px-6 py-4 text-[11px] font-bold text-[#71717a] uppercase tracking-widest">Status</th>
-                  <th className="px-6 py-4 text-[11px] font-bold text-[#71717a] uppercase tracking-widest text-right"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#27272a]/50">
-                <InvoiceRow date="Apr 2024" />
-                <InvoiceRow date="Mar 2024" />
-                <InvoiceRow date="Feb 2024" />
-                <InvoiceRow date="Jan 2024" />
-                <InvoiceRow date="Dec 2023" />
-              </tbody>
-            </table>
-          </div>
+          {/* Invoice History is currently empty */}
           
           {/* Empty State Block */}
           <div className="bg-[#13161F] border border-[#27272a]/50 rounded-xl p-6 flex items-start gap-4">
@@ -195,23 +267,4 @@ function ComparisonRow({ left, right, last = false }: { left: string, right: Rea
   );
 }
 
-// Reusable Invoice Row
-function InvoiceRow({ date }: { date: string }) {
-  return (
-    <tr className="hover:bg-white/[0.02] transition-colors">
-      <td className="px-6 py-4 text-[14px] font-bold text-white">{date}</td>
-      <td className="px-6 py-4 text-[14px] text-[#a1a1aa]">Growth</td>
-      <td className="px-6 py-4 text-[14px] font-bold text-white">$299.00</td>
-      <td className="px-6 py-4">
-        <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded text-[11px] font-bold tracking-wide uppercase">
-          Paid
-        </span>
-      </td>
-      <td className="px-6 py-4 text-right">
-        <a href="#" className="text-[13px] font-medium text-blue-500 hover:text-blue-400 transition-colors">
-          Download PDF
-        </a>
-      </td>
-    </tr>
-  );
-}
+

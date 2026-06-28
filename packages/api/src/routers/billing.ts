@@ -1,8 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
 import Razorpay from "razorpay";
 import { orgProcedure, router } from "../trpc";
-import crypto from "crypto";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || "dummy_key",
@@ -12,11 +10,13 @@ const razorpay = new Razorpay({
 export const FREE_PLAN_LIMITS = {
   repositories: 3,
   aiReviews: 10,
+  members: 20,
 };
 
 export const PRO_PLAN_LIMITS = {
   repositories: -1, // unlimited
   aiReviews: 100,
+  members: -1, // unlimited
 };
 
 export const billingRouter = router({
@@ -28,6 +28,9 @@ export const billingRouter = router({
           include: {
             repositories: true,
           }
+        },
+        _count: {
+          select: { members: true }
         }
       }
     });
@@ -37,7 +40,7 @@ export const billingRouter = router({
     }
 
     // Calculate active repositories
-    const repoCount = org.projects.reduce((acc, proj) => acc + proj.repositories.length, 0);
+    const repoCount = org.projects.reduce((acc: number, proj: any) => acc + proj.repositories.length, 0);
 
     const limits = org.plan === "PRO" ? PRO_PLAN_LIMITS : FREE_PLAN_LIMITS;
 
@@ -48,8 +51,10 @@ export const billingRouter = router({
       usage: {
         aiReviewsUsed: org.aiReviewsUsed,
         repositoriesLinked: repoCount,
+        membersCount: org._count.members,
       },
       limits,
+      orgName: org.name,
     };
   }),
 

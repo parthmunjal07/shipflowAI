@@ -57,7 +57,7 @@ export default async function FeatureRequestsPage({
 
   // Find the active request and its messages
   let activeRequest = null;
-  if (requests.length > 0) {
+  if (requests.length > 0 && requests[0]) {
     const targetId = activeRequestId || requests[0].id;
     activeRequest = await prisma.featureRequest.findUnique({
       where: { id: targetId },

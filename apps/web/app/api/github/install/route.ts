@@ -7,11 +7,30 @@ import crypto from "crypto";
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
 
-  if (!session || !session.user || !session.session.activeOrganizationId) {
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  let organizationId = session.session?.activeOrganizationId;
+
+  if (!organizationId) {
+    const { searchParams } = new URL(request.url);
+    const workspaceId = searchParams.get("workspaceId");
+    
+    if (workspaceId) {
+      const org = await prisma.organization.findFirst({
+        where: { slug: workspaceId }
+      });
+      if (org) {
+        organizationId = org.id;
+      }
+    }
+  }
+
+  if (!organizationId) {
     return NextResponse.json({ error: "Unauthorized or no active organization." }, { status: 401 });
   }
 
-  const organizationId = session.session.activeOrganizationId;
   const userId = session.user.id;
 
   // Generate a secure random state token

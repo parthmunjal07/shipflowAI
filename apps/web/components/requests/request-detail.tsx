@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, LayoutList } from "lucide-react";
 import { format } from "date-fns";
+import { PrdEditor } from "../prd-editor";
 
 export function RequestDetail({ request, workspaceId }: { request: any, workspaceId: string }) {
   if (!request) {
@@ -34,10 +35,19 @@ export function RequestDetail({ request, workspaceId }: { request: any, workspac
               <CheckCircle2 className="w-3.5 h-3.5" />
               Final Approval
             </Link>
-            <button className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 transition-colors text-white text-[13px] font-medium rounded-lg shadow-sm">
-              Generate PRD
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            
+            {request.prd?.isFinalized ? (
+              <Link href={`/${workspaceId}/requests/${request.id}/tasks`} className="flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-500 transition-colors text-white text-[13px] font-medium rounded-lg shadow-sm">
+                <LayoutList className="w-3.5 h-3.5" />
+                View Tasks
+              </Link>
+            ) : !request.prd && (
+              <button className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 transition-colors text-white text-[13px] font-medium rounded-lg shadow-sm">
+                Generate PRD
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+            
             <button className="px-4 py-2 bg-transparent border border-[#27272a] hover:bg-white/[0.03] transition-colors text-[#a1a1aa] hover:text-white text-[13px] font-medium rounded-lg">
               Edit
             </button>
@@ -112,9 +122,16 @@ export function RequestDetail({ request, workspaceId }: { request: any, workspac
             </div>
           )}
 
-          <p className="text-[12px] text-[#71717a] italic mt-2">
-            Status will advance to Ready for PRD once all clarification questions are answered.
-          </p>
+          {/* If PRD exists, show PRD Editor instead of pending chat status */}
+          {request.prd ? (
+            <div className="mt-8 pt-8 border-t border-[#27272a]/50">
+              <PrdEditor prd={request.prd} />
+            </div>
+          ) : (
+            <p className="text-[12px] text-[#71717a] italic mt-2">
+              Status will advance to Ready for PRD once all clarification questions are answered.
+            </p>
+          )}
 
         </div>
       </div>
