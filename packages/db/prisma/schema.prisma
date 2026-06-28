@@ -149,6 +149,7 @@ enum FeatureRequestStatus {
   PLANNED
   IN_PROGRESS
   READY_FOR_APPROVAL
+  REVISION_NEEDED
   SHIPPED
   REJECTED
 }
@@ -182,6 +183,7 @@ model FeatureRequest {
   sourceMetadata Json?
   submitterEmail String?
   submitterName  String?
+  approvalNotes  String?
   projectId      String
   project        Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdById    String?
@@ -420,6 +422,7 @@ enum AuditEventType {
   BILLING_CANCELLED
   MEMBER_INVITED
   MEMBER_REMOVED
+  FEATURE_SHIPPED
 }
 
 model AuditLog {

@@ -32,6 +32,11 @@ type Events = {
       payload: any;
     };
   };
+  "github/pull_request.edited": {
+    data: {
+      payload: any;
+    };
+  };
   "github/pull_request.closed": {
     data: {
       payload: any;

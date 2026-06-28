@@ -203,7 +203,74 @@ export const processPrClosed = inngest.createFunction(
           where: { id: { in: prWithTasks.tasks.map((t) => t.id) } },
           data: { status: "DONE" },
         });
+
+        // Check if all tasks for each linked feature request are now completed.
+        // A PR can address tasks from multiple feature requests, so check each one.
+        const uniqueFeatureRequestIds = [
+          ...new Set(prWithTasks.tasks.map((t) => t.featureRequestId)),
+        ];
+
+        for (const featureRequestId of uniqueFeatureRequestIds) {
+          const pendingTasks = await prisma.task.count({
+            where: { featureRequestId, status: { not: "DONE" } },
+          });
+
+          if (pendingTasks === 0) {
+            // All tasks are done — hand off to Human Approval (Phase 5)
+            await prisma.featureRequest.update({
+              where: { id: featureRequestId },
+              data: { status: "READY_FOR_APPROVAL" },
+            });
+          }
+        }
       }
     }
+  }
+);
+
+export const processPrEdited = inngest.createFunction(
+  { id: "github-pr-edited" },
+  { event: "github/pull_request.edited" },
+  async ({ event }) => {
+    const { payload } = event.data;
+    const result = await handlePrUpsertAndLinking(payload);
+
+    if (!result?.pr || !result?.githubRepo) {
+      return { skipped: true, reason: "repo_not_tracked" };
+    }
+
+    // Only re-trigger review if the PR was previously waiting for a task link
+    const currentPr = await prisma.pullRequest.findUnique({
+      where: { id: result.pr.id },
+      select: { reviewStatus: true, tasks: true },
+    });
+
+    if (!currentPr) {
+      return { skipped: true, reason: "pr_not_found" };
+    }
+
+    const hasTasksNow = currentPr.tasks.length > 0;
+    const wasAwaitingLink = currentPr.reviewStatus === "AWAITING_TASK_LINK";
+
+    if (wasAwaitingLink && hasTasksNow) {
+      // Tasks were added — re-trigger the AI review
+      const [owner, repo] = payload.repository.full_name.split("/");
+
+      await inngest.send({
+        name: "shipflow/pr.review-requested",
+        data: {
+          pullRequestId: result.pr.id,
+          githubInstallationDbId: result.githubRepo.installationId,
+          owner,
+          repo,
+          pullNumber: payload.pull_request.number,
+          headSha: payload.pull_request.head.sha,
+        },
+      });
+
+      return { success: true, action: "review_re_triggered" };
+    }
+
+    return { skipped: true, reason: wasAwaitingLink ? "still_no_tasks" : "already_reviewed" };
   }
 );

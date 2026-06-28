@@ -119,8 +119,8 @@ export const featureRequestRouter = router({
         include: { clarificationMessages: { orderBy: { round: "desc" }, take: 1 } },
       });
 
-      if (featureRequest.status === "SHIPPED") {
-        throw new Error("Cannot submit clarification because the feature is already shipped.");
+      if (!["PENDING", "UNDER_REVIEW"].includes(featureRequest.status)) {
+        throw new Error("Clarifications can only be submitted for features that are pending or under review.");
       }
 
       const currentRound = featureRequest.clarificationMessages[0]?.round ?? 1;
@@ -301,16 +301,36 @@ export const featureRequestRouter = router({
     .mutation(async ({ ctx, input }) => {
       const task = await ctx.prisma.task.findFirstOrThrow({
         where: { id: input.taskId, project: { organizationId: ctx.activeOrganizationId } },
-        include: { featureRequest: { select: { status: true } } }
+        include: { featureRequest: { select: { id: true, status: true } } }
       });
       if (task.featureRequest.status === "SHIPPED") {
         throw new Error("Cannot update task status because the feature is already shipped.");
       }
 
-      return ctx.prisma.task.update({
+      const updatedTask = await ctx.prisma.task.update({
         where: { id: input.taskId },
         data: { status: input.status },
       });
+
+      // When a task is moved to DONE, check if all sibling tasks are also DONE.
+      // If so, transition the parent feature request to READY_FOR_APPROVAL.
+      if (input.status === "DONE") {
+        const pendingTasks = await ctx.prisma.task.count({
+          where: {
+            featureRequestId: task.featureRequest.id,
+            status: { not: "DONE" },
+          },
+        });
+
+        if (pendingTasks === 0) {
+          await ctx.prisma.featureRequest.update({
+            where: { id: task.featureRequest.id },
+            data: { status: "READY_FOR_APPROVAL" },
+          });
+        }
+      }
+
+      return updatedTask;
     }),
 
   updatePrd: requirePermission("UPDATE_PRD")
@@ -366,6 +386,7 @@ export const featureRequestRouter = router({
           "PLANNED",
           "IN_PROGRESS",
           "READY_FOR_APPROVAL",
+          "REVISION_NEEDED",
           "SHIPPED",
           "REJECTED",
         ]),
@@ -388,5 +409,79 @@ export const featureRequestRouter = router({
           ...(input.approvalNotes ? { approvalNotes: input.approvalNotes } : {})
         },
       });
+    }),
+
+  shipFeature: requirePermission("UPDATE_STATUS")
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const feature = await ctx.prisma.featureRequest.findFirstOrThrow({
+        where: { id: input.id, project: { organizationId: ctx.activeOrganizationId } },
+        include: {
+          tasks: {
+            include: { pullRequests: true }
+          }
+        },
+      });
+
+      // 1. Validate all tasks are DONE
+      const allTasksDone = feature.tasks.every((t) => t.status === "DONE");
+      if (!allTasksDone) {
+        throw new Error("Cannot ship feature until all tasks are DONE.");
+      }
+
+      // 2. Validate all PRs are merged (if any exist)
+      for (const task of feature.tasks) {
+        for (const pr of task.pullRequests) {
+          if (pr.state !== "closed" || !pr.mergedAt) {
+            throw new Error(`Cannot ship feature. Pull request #${pr.number} is not merged.`);
+          }
+        }
+      }
+
+      // 3. Transition status
+      const updated = await ctx.prisma.featureRequest.update({
+        where: { id: input.id },
+        data: { status: "SHIPPED" },
+      });
+
+      // 4. Write audit log
+      await ctx.prisma.auditLog.create({
+        data: {
+          organizationId: ctx.activeOrganizationId,
+          userId: ctx.session.user.id,
+          eventType: "FEATURE_SHIPPED",
+          metadata: { featureRequestId: feature.id, title: feature.title },
+        },
+      });
+
+      return updated;
+    }),
+
+  requestRevisions: requirePermission("UPDATE_STATUS")
+    .input(
+      z.object({
+        id: z.string(),
+        reason: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const feature = await ctx.prisma.featureRequest.findFirstOrThrow({
+        where: { id: input.id, project: { organizationId: ctx.activeOrganizationId } },
+      });
+
+      if (feature.status !== "READY_FOR_APPROVAL") {
+        throw new Error("Can only request revisions for features that are READY_FOR_APPROVAL.");
+      }
+
+      // Push feature back to REVISION_NEEDED (effectively IN_PROGRESS but clearly marked)
+      const updated = await ctx.prisma.featureRequest.update({
+        where: { id: input.id },
+        data: { 
+          status: "REVISION_NEEDED",
+          approvalNotes: input.reason // Store the reason for revision
+        },
+      });
+
+      return updated;
     }),
 });

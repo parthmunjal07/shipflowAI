@@ -69,7 +69,7 @@ export async function POST(request: Request) {
   const { inngest } = await import("@repo/inngest");
 
   if (githubEvent === "pull_request") {
-    const validActions = ["opened", "synchronize", "closed"];
+    const validActions = ["opened", "synchronize", "edited", "closed"];
     if (validActions.includes(githubAction)) {
       await inngest.send({
         name: `github/pull_request.${githubAction}` as any,
