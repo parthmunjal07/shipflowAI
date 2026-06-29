@@ -86,7 +86,7 @@ export default async function SettingsPage({
     role: m.role,
     isYou: m.userId === session.user.id,
     initials: (m.user.name || "U").split(" ").map((n: string) => n[0]).join("").toUpperCase().substring(0, 2),
-    color: m.userId === session.user.id ? "bg-blue-600" : "bg-[#27272a]"
+    color: m.userId === session.user.id ? "bg-brand-mint text-brand-dark font-bold" : "bg-[#27272a]"
   }));
 
   // Format pending invitations for UI
@@ -113,7 +113,7 @@ export default async function SettingsPage({
       {tab === "members" ? (
         <div className="flex flex-col xl:flex-row gap-6">
           {/* Left Column: Members List */}
-          <div className="flex-1 bg-[#13161F] border border-[#27272a]/50 rounded-2xl p-6 h-fit">
+          <div className="flex-1 bg-surface-card border border-[#27272a]/50 rounded-2xl p-6 h-fit">
             <div className="mb-6">
               <h2 className="text-[16px] font-semibold text-white/90 mb-4">Members ({members.length})</h2>
               
@@ -123,7 +123,7 @@ export default async function SettingsPage({
                 <input 
                   type="text" 
                   placeholder="Search members..." 
-                  className="w-full bg-[#0A0D14] border border-[#27272a]/50 rounded-xl py-2.5 pl-10 pr-4 text-[14px] text-white placeholder:text-[#52525b] focus:outline-none focus:border-blue-500/50 transition-colors"
+                  className="w-full bg-surface-base border border-[#27272a]/50 rounded-xl py-2.5 pl-10 pr-4 text-[14px] text-white placeholder:text-[#52525b] focus:outline-none focus:border-blue-500/50 transition-colors"
                 />
               </div>
             </div>
@@ -152,7 +152,7 @@ export default async function SettingsPage({
                     </div>
                     <div>
                       <span className={`px-2.5 py-1 rounded-full text-[12px] font-medium capitalize ${
-                        member.role === 'admin' || member.role === 'owner' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/[0.03] text-[#a1a1aa]'
+                        member.role === 'admin' || member.role === 'owner' ? 'bg-brand-mint/10 text-brand-mint' : 'bg-white/[0.03] text-[#a1a1aa]'
                       }`}>
                         {member.role}
                       </span>

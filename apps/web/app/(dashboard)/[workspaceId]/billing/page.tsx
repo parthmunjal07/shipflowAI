@@ -40,7 +40,7 @@ export default function BillingPage() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 h-full bg-[#0A0D14] flex items-center justify-center">
+      <div className="flex-1 h-full bg-surface-base flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#71717a] animate-spin" />
       </div>
     );
@@ -48,7 +48,7 @@ export default function BillingPage() {
 
   if (!billingInfo) {
     return (
-      <div className="flex-1 h-full bg-[#0A0D14] flex items-center justify-center text-white">
+      <div className="flex-1 h-full bg-surface-base flex items-center justify-center text-white">
         Failed to load billing information.
       </div>
     );
@@ -65,7 +65,7 @@ export default function BillingPage() {
   const planPrice = isPro ? "$999/mo" : "$0/mo";
 
   return (
-    <div className="flex-1 h-full bg-[#0A0D14] overflow-y-auto">
+    <div className="flex-1 h-full bg-surface-base overflow-y-auto">
       <div className="max-w-4xl mx-auto w-full p-8 lg:p-12 pb-32">
         
         {/* Header */}
@@ -81,9 +81,9 @@ export default function BillingPage() {
         </div>
 
         {/* Current Plan Block */}
-        <div className="bg-[#13161F] border border-[#27272a]/50 rounded-2xl relative overflow-hidden mb-12">
+        <div className="bg-surface-card border border-[#27272a]/50 rounded-2xl relative overflow-hidden mb-12">
           {/* Blue left edge highlight */}
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600"></div>
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-mint text-brand-dark font-bold"></div>
           
           <div className="p-8 flex items-center justify-between">
             <div>
@@ -113,7 +113,7 @@ export default function BillingPage() {
                 <button 
                   onClick={handleUpgrade}
                   disabled={createCheckoutMutation.isPending}
-                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 transition-colors text-white text-[14px] font-bold rounded-lg shadow-sm disabled:opacity-50"
+                  className="px-5 py-2.5 bg-brand-mint hover:bg-brand-mintHover text-brand-dark font-bold transition-colors text-white text-[14px] font-bold rounded-lg shadow-sm disabled:opacity-50"
                 >
                   {createCheckoutMutation.isPending ? "Processing..." : "Upgrade to Enterprise"}
                 </button>
@@ -142,7 +142,7 @@ export default function BillingPage() {
           
           <div className="grid grid-cols-3 gap-6">
             {/* AI Review Credits */}
-            <div className="bg-[#13161F] border border-[#27272a]/50 rounded-xl p-6">
+            <div className="bg-surface-card border border-[#27272a]/50 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-[14px] font-bold text-white">AI Review Credits</h4>
                 {limits.aiReviews !== -1 && aiReviewsPercent >= 80 && (
@@ -156,7 +156,7 @@ export default function BillingPage() {
                 <span className="text-[14px] font-medium text-[#71717a]"> / {limits.aiReviews === -1 ? "∞" : limits.aiReviews}</span>
               </div>
               <div className="h-1.5 w-full bg-[#27272a] rounded-full overflow-hidden mb-2">
-                <div className="h-full bg-blue-600 rounded-full" style={{ width: `${limits.aiReviews === -1 ? 10 : Math.min(aiReviewsPercent, 100)}%` }}></div>
+                <div className="h-full bg-brand-mint text-brand-dark font-bold rounded-full" style={{ width: `${limits.aiReviews === -1 ? 10 : Math.min(aiReviewsPercent, 100)}%` }}></div>
               </div>
               {limits.aiReviews !== -1 && (
                 <div className="text-[12px] text-[#71717a] mb-1">{limits.aiReviews - usage.aiReviewsUsed} remaining</div>
@@ -164,7 +164,7 @@ export default function BillingPage() {
             </div>
 
             {/* Connected Repositories */}
-            <div className="bg-[#13161F] border border-[#27272a]/50 rounded-xl p-6">
+            <div className="bg-surface-card border border-[#27272a]/50 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-[14px] font-bold text-white">Connected Repositories</h4>
               </div>
@@ -173,7 +173,7 @@ export default function BillingPage() {
                 <span className="text-[14px] font-medium text-[#71717a]"> / {limits.repositories === -1 ? "∞" : limits.repositories}</span>
               </div>
               <div className="h-1.5 w-full bg-[#27272a] rounded-full overflow-hidden mb-2">
-                <div className="h-full bg-blue-600 rounded-full" style={{ width: `${limits.repositories === -1 ? 10 : Math.min(reposPercent, 100)}%` }}></div>
+                <div className="h-full bg-brand-mint text-brand-dark font-bold rounded-full" style={{ width: `${limits.repositories === -1 ? 10 : Math.min(reposPercent, 100)}%` }}></div>
               </div>
               {limits.repositories !== -1 && (
                 <div className="text-[12px] text-[#71717a]">{limits.repositories - usage.repositoriesLinked} remaining</div>
@@ -181,7 +181,7 @@ export default function BillingPage() {
             </div>
 
             {/* Team Members */}
-            <div className="bg-[#13161F] border border-[#27272a]/50 rounded-xl p-6">
+            <div className="bg-surface-card border border-[#27272a]/50 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-[14px] font-bold text-white">Team Members</h4>
               </div>
@@ -190,7 +190,7 @@ export default function BillingPage() {
                 <span className="text-[14px] font-medium text-[#71717a]"> / {limits.members === -1 ? "∞" : limits.members}</span>
               </div>
               <div className="h-1.5 w-full bg-[#27272a] rounded-full overflow-hidden mb-2">
-                <div className="h-full bg-blue-600 rounded-full" style={{ width: `${limits.members === -1 ? 10 : Math.min(membersPercent, 100)}%` }}></div>
+                <div className="h-full bg-brand-mint text-brand-dark font-bold rounded-full" style={{ width: `${limits.members === -1 ? 10 : Math.min(membersPercent, 100)}%` }}></div>
               </div>
               {limits.members !== -1 && (
                 <div className="text-[12px] text-[#71717a]">{limits.members - usage.membersCount} remaining</div>
@@ -203,12 +203,12 @@ export default function BillingPage() {
         <div className="mb-12">
           <h3 className="text-[18px] font-bold text-white mb-6">Plan Comparison</h3>
           
-          <div className="bg-[#13161F] border border-[#27272a]/50 rounded-xl overflow-hidden mb-6">
+          <div className="bg-surface-card border border-[#27272a]/50 rounded-xl overflow-hidden mb-6">
             <div className="grid grid-cols-2">
-              <div className="p-5 border-b border-r border-[#27272a]/50 bg-[#1A1E29]/50">
+              <div className="p-5 border-b border-r border-[#27272a]/50 bg-surface-elevated/50">
                 <h4 className="font-bold text-white text-[15px]">Growth (Current)</h4>
               </div>
-              <div className="p-5 border-b border-[#27272a]/50 bg-blue-600">
+              <div className="p-5 border-b border-[#27272a]/50 bg-brand-mint text-brand-dark font-bold">
                 <h4 className="font-bold text-white text-[15px]">Enterprise</h4>
               </div>
 
@@ -224,7 +224,7 @@ export default function BillingPage() {
           </div>
           
           <div className="flex justify-center">
-            <button className="px-6 py-3 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/20 transition-colors text-blue-500 text-[14px] font-bold rounded-lg">
+            <button className="px-6 py-3 bg-brand-mint text-brand-dark font-bold/10 hover:bg-brand-mint text-brand-dark font-bold/20 border border-brand-mint/20 transition-colors text-brand-mint text-[14px] font-bold rounded-lg">
               Upgrade to Enterprise — Contact Sales
             </button>
           </div>
@@ -237,7 +237,7 @@ export default function BillingPage() {
           {/* Invoice History is currently empty */}
           
           {/* Empty State Block */}
-          <div className="bg-[#13161F] border border-[#27272a]/50 rounded-xl p-6 flex items-start gap-4">
+          <div className="bg-surface-card border border-[#27272a]/50 rounded-xl p-6 flex items-start gap-4">
             <div className="w-10 h-10 rounded-lg bg-white/[0.03] border border-[#27272a]/50 flex items-center justify-center shrink-0">
               <FileText className="w-4 h-4 text-[#71717a]" />
             </div>

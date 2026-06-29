@@ -4,9 +4,9 @@ import Image from "next/image";
 import { ArrowRight, FileText, GitPullRequest, ShieldAlert, Cpu, Settings, LineChart, CheckCircle2, Layout, GitMerge, MessageSquare, Code2, Database, Webhook } from "lucide-react";
 
 export const metadata: Metadata = {
-    title: "ShipFlow AI — Feature requests to shipped code, automated",
+    title: "The Wharf — Feature requests to shipped code, automated",
     description:
-        "ShipFlow AI turns feature requests into production-ready pull requests through an AI pipeline.",
+        "The Wharf turns feature requests into production-ready pull requests through an AI pipeline.",
 };
 
 export default function MarketingPage() {
@@ -21,7 +21,7 @@ export default function MarketingPage() {
                             SF
                         </span>
                         <span className="text-xl font-bold tracking-tight text-brand-dark">
-                            ShipFlow AI
+                            The Wharf
                         </span>
                     </Link>
 
@@ -145,7 +145,7 @@ export default function MarketingPage() {
                                 Efficient and Integrated Development Services
                             </h2>
                             <p className="mt-4 text-slate-400 text-lg">
-                                ShipFlow handles the entire lifecycle of a feature request, so your engineers can focus on architecture and strategy.
+                                The Wharf handles the entire lifecycle of a feature request, so your engineers can focus on architecture and strategy.
                             </p>
                         </div>
 
@@ -280,7 +280,7 @@ export default function MarketingPage() {
                                 Empowering Top Teams with Seamless Integrations
                             </h2>
                             <p className="text-slate-600 text-lg leading-relaxed mb-8">
-                                Connect ShipFlow AI to your existing stack in seconds. Deeply integrated with GitHub to keep your workflows exactly how you like them.
+                                Connect The Wharf to your existing stack in seconds. Deeply integrated with GitHub to keep your workflows exactly how you like them.
                             </p>
                             <Link href="/docs" className="inline-flex items-center gap-2 rounded-full bg-brand-mint px-6 py-2.5 text-sm font-bold text-brand-dark hover:bg-[#b5eb9f] transition-colors">
                                 View all integrations
@@ -324,7 +324,7 @@ export default function MarketingPage() {
                             From Idea to Production in Days
                         </h2>
                         <p className="text-brand-mint/80 text-lg mb-10 font-medium">
-                            Join the teams who are shipping features 5x faster with ShipFlow AI.
+                            Join the teams who are shipping features 5x faster with The Wharf.
                         </p>
                         <Link href="/auth" className="rounded-full bg-brand-mint px-10 py-4 text-[15px] font-bold text-brand-dark transition-transform hover:scale-105 inline-block shadow-lg shadow-brand-mint/20">
                             Start Free Trial
@@ -342,14 +342,14 @@ export default function MarketingPage() {
                                 SF
                             </span>
                             <span className="text-lg font-bold text-white">
-                                ShipFlow
+                                The Wharf
                             </span>
                         </Link>
                         <p className="text-xs text-slate-500 leading-relaxed mb-6">
                             Decelerate to accelerate. Ship software with an automated AI pipeline that just works.
                         </p>
                         <p className="text-xs text-slate-600">
-                            &copy; {new Date().getFullYear()} ShipFlow AI. All rights reserved.
+                            &copy; {new Date().getFullYear()} The Wharf. All rights reserved.
                         </p>
                     </div>
                     

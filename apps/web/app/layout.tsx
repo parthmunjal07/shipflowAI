@@ -13,7 +13,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "ShipFlow AI",
+  title: "The Wharf",
   description: "The AI co-pilot that turns raw requests into shipped code.",
 };
 

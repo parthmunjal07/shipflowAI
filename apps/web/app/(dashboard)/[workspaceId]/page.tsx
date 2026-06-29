@@ -7,6 +7,7 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { NewFeatureRequestDialog } from "../../../components/new-feature-request-dialog";
 import { WorkspaceSwitcher } from "../../../components/workspace-switcher";
+import { CreateProjectButton } from "../../../components/create-project-button";
 
 export default async function DashboardPage({ params }: { params: Promise<{ workspaceId: string }> }) {
   const { workspaceId } = await params;
@@ -48,13 +49,13 @@ export default async function DashboardPage({ params }: { params: Promise<{ work
   ]);
 
   const stats = [
-    { label: "REQUEST", value: requestCount.toString(), color: "bg-blue-500" },
-    { label: "PRD", value: prdCount.toString(), color: "bg-blue-600" },
+    { label: "REQUEST", value: requestCount.toString(), color: "bg-brand-mint text-brand-dark font-bold" },
+    { label: "PRD", value: prdCount.toString(), color: "bg-brand-mint text-brand-dark font-bold" },
     { label: "TASKS", value: taskCount.toString(), color: "bg-indigo-500" },
     { label: "CODE", value: codeCount.toString(), color: "bg-blue-400" },
     { label: "IN PROGRESS", value: inProgressTasks.toString(), color: "bg-yellow-500" },
     { label: "PENDING", value: pendingRequests.toString(), color: "bg-amber-500" },
-    { label: "HUMAN APPROVAL", value: "0", color: "bg-blue-500" }, // Placeholder for future feature
+    { label: "HUMAN APPROVAL", value: "0", color: "bg-brand-mint text-brand-dark font-bold" }, // Placeholder for future feature
     { label: "SHIPPED", value: shippedCount.toString(), color: "bg-green-500" },
   ];
 
@@ -88,7 +89,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ work
       createdAt: r.createdAt,
       linkText: `View Request in ${r.project.name}`,
       href: `/${workspaceId}/requests/${r.id}`,
-      dot: "bg-blue-500"
+      dot: "bg-brand-mint text-brand-dark font-bold"
     })),
     ...recentTasks.map(t => ({
       type: "task",
@@ -159,7 +160,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ work
       {/* Funnel Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-8">
         {stats.map((stat, i) => (
-          <div key={i} className="bg-[#13161F] border border-[#27272a]/50 rounded-xl p-4 flex flex-col relative overflow-hidden group">
+          <div key={i} className="bg-surface-card border border-[#27272a]/50 rounded-xl p-4 flex flex-col relative overflow-hidden group">
             <span className="text-[10px] font-bold text-[#71717a] tracking-wider mb-2 uppercase">{stat.label}</span>
             <span className="text-3xl font-semibold text-white tracking-tight">{stat.value}</span>
             <div className={`absolute bottom-0 left-4 right-4 h-1 ${stat.color} rounded-t-full opacity-80`} />
@@ -169,7 +170,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ work
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Activity (2/3 width) */}
-        <div className="lg:col-span-2 bg-[#13161F] border border-[#27272a]/50 rounded-2xl p-6">
+        <div className="lg:col-span-2 bg-surface-card border border-[#27272a]/50 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-[15px] font-semibold text-white/90">Recent Activity</h2>
             <Activity className="w-4 h-4 text-[#52525b]" />
@@ -185,7 +186,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ work
                   </p>
                   <p className="text-[12px] text-[#71717a]">{activity.time}</p>
                   {activity.href !== "#" && (
-                    <Link href={activity.href} className="text-[13px] text-blue-500 hover:text-blue-400 mt-1">
+                    <Link href={activity.href} className="text-[13px] text-brand-mint hover:text-brand-mint mt-1">
                       {activity.linkText}
                     </Link>
                   )}
@@ -199,7 +200,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ work
         <div className="space-y-6">
           
           {/* Needs Attention */}
-          <div className="bg-[#13161F] border border-[#27272a]/50 rounded-2xl p-6">
+          <div className="bg-surface-card border border-[#27272a]/50 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-[15px] font-semibold text-white/90">Needs Attention</h2>
               <AlertTriangle className="w-4 h-4 text-amber-500/80" />
@@ -215,12 +216,13 @@ export default async function DashboardPage({ params }: { params: Promise<{ work
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-[#13161F] border border-[#27272a]/50 rounded-2xl p-6">
+          <div className="bg-surface-card border border-[#27272a]/50 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-[15px] font-semibold text-white/90">Quick Actions</h2>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#52525b]"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
             </div>
             <div className="space-y-3">
+              <CreateProjectButton className="w-full py-2.5" />
               <NewFeatureRequestDialog workspaceId={workspaceId} projects={organization.projects} />
               <Link href={`/${workspaceId}/github`} className="flex items-center justify-center w-full py-2.5 rounded-lg bg-transparent border border-white/[0.05] hover:bg-white/[0.03] text-[#a1a1aa] hover:text-white text-[14px] font-medium transition-colors">
                 Manage GitHub Repos

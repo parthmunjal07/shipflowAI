@@ -23,7 +23,7 @@ export function InngestProgressIndicator({
 
   if (state === "IDLE") return null;
 
-  let icon = <Loader2 className="w-5 h-5 animate-spin text-blue-500" />;
+  let icon = <Loader2 className="w-5 h-5 animate-spin text-brand-mint" />;
   let title = "Processing...";
   let description = "AI is working in the background.";
 
@@ -34,7 +34,7 @@ export function InngestProgressIndicator({
       description = "Checking for duplicates, missing dimensions, and formulating follow-up questions.";
       break;
     case "GENERATING_PRD":
-      icon = <FileText className="w-5 h-5 text-blue-500 animate-pulse" />;
+      icon = <FileText className="w-5 h-5 text-brand-mint animate-pulse" />;
       title = "Drafting the PRD...";
       description = "Converting the clarified specs into a structured Product Requirements Document.";
       break;

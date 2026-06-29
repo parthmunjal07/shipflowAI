@@ -16,12 +16,12 @@ async function postCheckRun(
     await octokit.rest.checks.create({
       owner: owner as string,
       repo: repo as string,
-      name: "ShipFlow AI Review",
+      name: "The Wharf Review",
       head_sha: headSha,
       status,
       conclusion,
       output: {
-        title: "ShipFlow AI Review",
+        title: "The Wharf Review",
         summary: status === "completed" ? "Review complete." : "AI is reviewing your changes...",
       },
     });
@@ -135,7 +135,7 @@ export const processPrOpened = inngest.createFunction(
       
       // Trigger AI Review Agent
       await inngest.send({
-        name: "shipflow/pr.review-requested",
+        name: "the-wharf/pr.review-requested",
         data: {
           pullRequestId: result.pr.id,
           githubInstallationDbId: result.githubRepo.installationId,
@@ -168,7 +168,7 @@ export const processPrSynchronize = inngest.createFunction(
       
       // Trigger AI Review Agent
       await inngest.send({
-        name: "shipflow/pr.review-requested",
+        name: "the-wharf/pr.review-requested",
         data: {
           pullRequestId: result.pr.id,
           githubInstallationDbId: result.githubRepo.installationId,
@@ -257,7 +257,7 @@ export const processPrEdited = inngest.createFunction(
       const [owner, repo] = payload.repository.full_name.split("/");
 
       await inngest.send({
-        name: "shipflow/pr.review-requested",
+        name: "the-wharf/pr.review-requested",
         data: {
           pullRequestId: result.pr.id,
           githubInstallationDbId: result.githubRepo.installationId,

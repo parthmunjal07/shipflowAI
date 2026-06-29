@@ -16,7 +16,7 @@ export const clarificationLoop = inngest.createFunction(
     id: "clarification-loop",
     name: "Feature Request Clarification Loop",
   },
-  { event: "shipflow/feature-request.created" },
+  { event: "the-wharf/feature-request.created" },
   async ({ event, step }) => {
     const { featureRequestId, projectId, title, content } = event.data;
     let currentContent = content;
@@ -116,7 +116,7 @@ export const clarificationLoop = inngest.createFunction(
       const duplicateResponse = await step.waitForEvent(
         "wait-for-duplicate-response",
         {
-          event: "shipflow/duplicate.responded",
+          event: "the-wharf/duplicate.responded",
           timeout: WAIT_TIMEOUT,
           if: `async.data.featureRequestId == '${featureRequestId}'`,
         }
@@ -235,7 +235,7 @@ export const clarificationLoop = inngest.createFunction(
     // If already specific enough, we're done
     if (classification.isSpecificEnough) {
       await step.sendEvent("trigger-prd-initial", {
-        name: "shipflow/feature-request.resolved",
+        name: "the-wharf/feature-request.resolved",
         data: { featureRequestId },
       });
       return { status: "resolved", rounds: 0 };
@@ -269,7 +269,7 @@ export const clarificationLoop = inngest.createFunction(
       const answerEvent = await step.waitForEvent(
         `wait-for-answer-round-${round}`,
         {
-          event: "shipflow/clarification.answered",
+          event: "the-wharf/clarification.answered",
           timeout: WAIT_TIMEOUT,
           if: `async.data.featureRequestId == '${featureRequestId}'`,
         }
@@ -326,7 +326,7 @@ export const clarificationLoop = inngest.createFunction(
 
       if (classification.isSpecificEnough) {
         await step.sendEvent(`trigger-prd-round-${round}`, {
-          name: "shipflow/feature-request.resolved",
+          name: "the-wharf/feature-request.resolved",
           data: { featureRequestId },
         });
         return { status: "resolved", rounds: round };
@@ -359,7 +359,7 @@ export const clarificationLoop = inngest.createFunction(
     });
 
     await step.sendEvent("trigger-prd-max-rounds", {
-      name: "shipflow/feature-request.resolved",
+      name: "the-wharf/feature-request.resolved",
       data: { featureRequestId },
     });
 

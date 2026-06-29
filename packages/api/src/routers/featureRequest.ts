@@ -47,7 +47,7 @@ export const featureRequestRouter = router({
 
       // Fire Inngest event to kick off the clarification workflow
       await inngest.send({
-        name: "shipflow/feature-request.created",
+        name: "the-wharf/feature-request.created",
         data: {
           featureRequestId: featureRequest.id,
           projectId: project.id,
@@ -68,38 +68,49 @@ export const featureRequestRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Verify project belongs to organization
-      const project = await ctx.prisma.project.findFirstOrThrow({
-        where: { id: input.projectId, organizationId: ctx.activeOrganizationId },
-      });
+      try {
+        console.log("createInternal: Starting for project", input.projectId);
+        // Verify project belongs to organization
+        const project = await ctx.prisma.project.findFirstOrThrow({
+          where: { id: input.projectId, organizationId: ctx.activeOrganizationId },
+        });
 
-      const textForAI = `${input.title}\n\n${input.content}`;
-      const embedding = await generateEmbedding(textForAI);
+        console.log("createInternal: Generating embedding...");
+        const textForAI = `${input.title}\n\n${input.content}`;
+        const embedding = await generateEmbedding(textForAI);
 
-      const featureRequest = await ctx.prisma.featureRequest.create({
-        data: {
-          title: input.title,
-          content: input.content,
-          projectId: project.id,
-          source: "TICKET", // or some internal source
-          createdById: ctx.session?.user?.id,
-        },
-      });
+        console.log("createInternal: Creating feature request...");
+        const featureRequest = await ctx.prisma.featureRequest.create({
+          data: {
+            title: input.title,
+            content: input.content,
+            projectId: project.id,
+            source: "TICKET", // or some internal source
+            createdById: ctx.session?.user?.id,
+          },
+        });
 
-      await storeEmbedding(ctx.prisma, featureRequest.id, embedding);
+        console.log("createInternal: Storing embedding...");
+        await storeEmbedding(ctx.prisma, featureRequest.id, embedding);
 
-      // Fire Inngest event
-      await inngest.send({
-        name: "shipflow/feature-request.created",
-        data: {
-          featureRequestId: featureRequest.id,
-          projectId: project.id,
-          title: input.title,
-          content: input.content,
-        },
-      });
+        console.log("createInternal: Sending Inngest event...");
+        // Fire Inngest event
+        await inngest.send({
+          name: "the-wharf/feature-request.created",
+          data: {
+            featureRequestId: featureRequest.id,
+            projectId: project.id,
+            title: input.title,
+            content: input.content,
+          },
+        });
 
-      return { featureRequest };
+        console.log("createInternal: Success!");
+        return { featureRequest };
+      } catch (err) {
+        console.error("createInternal FATAL ERROR:", err);
+        throw err;
+      }
     }),
 
   submitClarification: requirePermission("SUBMIT_CLARIFICATION")
@@ -137,7 +148,7 @@ export const featureRequestRouter = router({
 
       // 3. Fire Inngest event to resume the workflow
       await inngest.send({
-        name: "shipflow/clarification.answered",
+        name: "the-wharf/clarification.answered",
         data: {
           featureRequestId: input.featureRequestId,
           answers: input.answers,
@@ -177,7 +188,7 @@ export const featureRequestRouter = router({
 
       // Fire Inngest event to resume the durable workflow
       await inngest.send({
-        name: "shipflow/duplicate.responded",
+        name: "the-wharf/duplicate.responded",
         data: {
           featureRequestId: input.featureRequestId,
           action: input.action,
@@ -253,7 +264,7 @@ export const featureRequestRouter = router({
       });
 
       await inngest.send({
-        name: "shipflow/prd.generate-tasks",
+        name: "the-wharf/prd.generate-tasks",
         data: { featureRequestId: input.featureRequestId },
       });
       return { success: true };

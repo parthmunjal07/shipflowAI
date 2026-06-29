@@ -10,7 +10,7 @@ function ProgressPill({ label, state }: { label: string, state: "done" | "active
   if (state === "done") {
     styles = "bg-emerald-500/10 border-emerald-500/20 text-emerald-500";
   } else if (state === "active") {
-    styles = "bg-blue-600 border-blue-600 text-white";
+    styles = "bg-brand-mint border-blue-600 text-brand-dark font-bold";
   } else {
     styles = "bg-white/[0.02] border-[#27272a]/50 text-[#71717a]";
   }
@@ -48,7 +48,7 @@ function CollapsibleBlock({
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   return (
-    <div className="bg-[#13161F] border border-[#27272a]/50 rounded-xl overflow-hidden transition-all">
+    <div className="bg-surface-card border border-[#27272a]/50 rounded-xl overflow-hidden transition-all">
       <div 
         onClick={() => setExpanded(!expanded)}
         className={`p-5 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] transition-colors ${expanded ? 'border-b border-[#27272a]/50' : ''}`}
@@ -150,7 +150,7 @@ export function ApprovalClient({
   const allChecksPassed = doneTasksCount === totalTasks && uniquePrs.every((pr: any) => pr.reviewStatus === "APPROVED");
 
   return (
-    <div className="flex-1 h-full bg-[#0A0D14] overflow-y-auto relative">
+    <div className="flex-1 h-full bg-surface-base overflow-y-auto relative">
       <div className="max-w-4xl mx-auto w-full p-8 lg:p-12 pb-48">
         
         {/* Header */}
@@ -169,9 +169,9 @@ export function ApprovalClient({
 
         {/* Success Banner */}
         {featureRequest.status === "SHIPPED" ? (
-          <div className="flex items-center gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl mb-8">
-            <CheckCircle2 className="w-5 h-5 text-blue-500" />
-            <span className="text-blue-500 font-bold text-[15px]">This feature has been shipped</span>
+          <div className="flex items-center gap-3 p-4 bg-brand-mint/10 border border-brand-mint/20 rounded-xl mb-8">
+            <CheckCircle2 className="w-5 h-5 text-brand-mint" />
+            <span className="text-brand-mint font-bold text-[15px]">This feature has been shipped</span>
           </div>
         ) : allChecksPassed ? (
           <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl mb-8">
@@ -266,10 +266,10 @@ export function ApprovalClient({
                   const latestRun = pr.reviewRuns?.[0];
                   
                   return (
-                    <div key={pr.id} className="bg-[#1A1E29] border border-[#27272a] rounded-lg p-4">
+                    <div key={pr.id} className="bg-surface-elevated border border-[#27272a] rounded-lg p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <a href={pr.url} target="_blank" rel="noreferrer" className="text-[15px] font-bold text-white hover:text-blue-400 transition-colors flex items-center gap-1.5">
+                          <a href={pr.url} target="_blank" rel="noreferrer" className="text-[15px] font-bold text-white hover:text-brand-mint transition-colors flex items-center gap-1.5">
                             <GitMerge className="w-4 h-4" />
                             {pr.title} <span className="text-[#71717a] font-normal">#{pr.number}</span>
                             <ExternalLink className="w-3.5 h-3.5 ml-1 text-[#71717a]" />
@@ -301,7 +301,7 @@ export function ApprovalClient({
                       </div>
                       
                       {latestRun && (
-                        <div className="bg-[#13161F] border border-[#27272a]/50 rounded-md p-3 text-[13px]">
+                        <div className="bg-surface-card border border-[#27272a]/50 rounded-md p-3 text-[13px]">
                           <p className="text-[#a1a1aa] whitespace-pre-line font-mono text-[12px]">{latestRun.summary}</p>
                           {latestRun.issues?.length > 0 && (
                             <div className="mt-3 space-y-2">
@@ -331,7 +331,7 @@ export function ApprovalClient({
 
       {/* Sticky Action Footer */}
       {featureRequest.status !== "SHIPPED" && (
-        <div className="fixed bottom-0 left-[260px] right-0 bg-[#0A0D14] border-t border-[#27272a]/50 p-6 z-10 flex items-center justify-between">
+        <div className="fixed bottom-0 left-[260px] right-0 bg-surface-base border-t border-[#27272a]/50 p-6 z-10 flex items-center justify-between">
           <div className="flex flex-col">
             <span className="text-[14px] font-medium text-white/90">Approving as {userName}</span>
             <span className="text-[13px] text-[#71717a]">({userRole})</span>
@@ -343,7 +343,7 @@ export function ApprovalClient({
               placeholder="Add approval notes (optional)..." 
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
-              className="w-full bg-[#1A1E29] border border-[#27272a] rounded-lg px-4 py-2.5 text-[14px] text-white placeholder-[#52525b] focus:outline-none focus:border-blue-500 transition-colors"
+              className="w-full bg-surface-elevated border border-[#27272a] rounded-lg px-4 py-2.5 text-[14px] text-white placeholder-[#52525b] focus:outline-none focus:border-blue-500 transition-colors"
             />
           </div>
           
@@ -374,7 +374,7 @@ export function ApprovalClient({
       {/* Rejection Modal Overlay */}
       {isRejectModalOpen && (
         <form onSubmit={handleRejectSubmit} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-[#13161F] border border-[#27272a]/50 rounded-2xl shadow-2xl w-full max-w-lg p-6 relative animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-surface-card border border-[#27272a]/50 rounded-2xl shadow-2xl w-full max-w-lg p-6 relative animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-[18px] font-bold text-white">Reason for rejection</h2>
               <button 
@@ -392,7 +392,7 @@ export function ApprovalClient({
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="Reason for rejection"
-              className="w-full bg-[#1A1E29] border border-[#27272a] rounded-lg p-4 text-[14px] text-white placeholder-[#52525b] focus:outline-none focus:border-red-500 transition-colors mb-6 resize-none"
+              className="w-full bg-surface-elevated border border-[#27272a] rounded-lg p-4 text-[14px] text-white placeholder-[#52525b] focus:outline-none focus:border-red-500 transition-colors mb-6 resize-none"
             />
             
             <button 

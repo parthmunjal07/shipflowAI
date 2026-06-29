@@ -6,11 +6,13 @@ import { trpc } from "../trpc/client";
 import { useRouter } from "next/navigation";
 
 export function CreateProjectButton({ 
-  label = "New Project", 
-  icon = true 
+  label = "Create Project", 
+  icon = true,
+  className = ""
 }: { 
   label?: string; 
   icon?: boolean;
+  className?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState("");
@@ -18,12 +20,11 @@ export function CreateProjectButton({
   const router = useRouter();
 
   const createMutation = trpc.project.create.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
       setIsOpen(false);
       setName("");
       setDescription("");
-      router.refresh();
-      router.push(`/projects/${data.id}`);
+      router.refresh(); // Refresh the page to show the new project
     },
     onError: (error) => {
       alert(error.message);
@@ -40,23 +41,23 @@ export function CreateProjectButton({
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2"
+        className={`flex items-center justify-center gap-2 px-4 py-2 bg-brand-mint text-brand-dark font-bold text-[13px] rounded-lg hover:bg-brand-mintHover transition-colors ${className}`}
       >
         {icon && <Plus className="w-4 h-4" />}
         {label}
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
-            <div className="p-6 border-b border-gray-100">
-              <h2 className="text-xl font-bold text-gray-900">Create Project</h2>
-              <p className="text-sm text-gray-500 mt-1">Add a new project to your workspace.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="bg-surface-elevated border border-[#27272a] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b border-[#27272a]/50">
+              <h2 className="text-xl font-bold text-white tracking-tight">Create Project</h2>
+              <p className="text-[13px] text-[#a1a1aa] mt-1">Add a new project to organize feature requests and tasks.</p>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="name" className="block text-[13px] font-medium text-white/90 mb-1.5">
                   Project Name
                 </label>
                 <input
@@ -66,36 +67,36 @@ export function CreateProjectButton({
                   autoFocus
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full bg-surface-base border border-[#27272a] rounded-xl px-4 py-2.5 text-[14px] text-white placeholder:text-[#52525b] focus:outline-none focus:border-brand-mint/50 transition-colors"
                   placeholder="e.g. Acme Web App"
                 />
               </div>
               
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                  Description <span className="text-gray-400 font-normal">(optional)</span>
+                <label htmlFor="description" className="block text-[13px] font-medium text-white/90 mb-1.5">
+                  Description <span className="text-[#52525b] font-normal">(optional)</span>
                 </label>
                 <textarea
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-h-[100px] resize-y"
+                  className="w-full bg-surface-base border border-[#27272a] rounded-xl px-4 py-2.5 text-[14px] text-white placeholder:text-[#52525b] focus:outline-none focus:border-brand-mint/50 transition-colors min-h-[100px] resize-y"
                   placeholder="What is this project about?"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex justify-end gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                  className="px-4 py-2 text-[13px] font-medium text-[#a1a1aa] hover:text-white transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={!name.trim() || createMutation.isPending}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="bg-brand-mint text-brand-dark font-bold px-5 py-2 rounded-lg text-[13px] font-medium hover:bg-brand-mintHover transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
                 >
                   {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                   Create Project

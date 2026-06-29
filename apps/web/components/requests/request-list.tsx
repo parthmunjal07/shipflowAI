@@ -13,7 +13,7 @@ export function RequestList({
   projectId: string
 }) {
   return (
-    <div className="w-[420px] flex-shrink-0 border-r border-[#27272a]/50 flex flex-col h-full bg-[#0A0D14]">
+    <div className="w-[420px] flex-shrink-0 border-r border-[#27272a]/50 flex flex-col h-full bg-surface-base">
       {/* Header */}
       <div className="p-6 pb-4 border-b border-[#27272a]/50 shrink-0">
         <div className="flex items-center justify-between mb-4">
@@ -25,15 +25,15 @@ export function RequestList({
         
         {/* Filters */}
         <div className="flex items-center gap-2">
-          <button className="flex-1 flex items-center justify-between px-3 py-2 bg-[#13161F] border border-[#27272a]/50 rounded-lg hover:bg-white/[0.04] transition-colors">
+          <button className="flex-1 flex items-center justify-between px-3 py-2 bg-surface-card border border-[#27272a]/50 rounded-lg hover:bg-white/[0.04] transition-colors">
             <span className="text-[13px] text-white/90">All Statuses</span>
             <ChevronDown className="w-4 h-4 text-[#52525b]" />
           </button>
-          <button className="flex-1 flex items-center justify-between px-3 py-2 bg-[#13161F] border border-[#27272a]/50 rounded-lg hover:bg-white/[0.04] transition-colors">
+          <button className="flex-1 flex items-center justify-between px-3 py-2 bg-surface-card border border-[#27272a]/50 rounded-lg hover:bg-white/[0.04] transition-colors">
             <span className="text-[13px] text-white/90">Newest</span>
             <ChevronDown className="w-4 h-4 text-[#52525b]" />
           </button>
-          <button className="p-2 bg-[#13161F] border border-[#27272a]/50 rounded-lg hover:bg-white/[0.04] transition-colors flex items-center justify-center">
+          <button className="p-2 bg-surface-card border border-[#27272a]/50 rounded-lg hover:bg-white/[0.04] transition-colors flex items-center justify-center">
             <Search className="w-4 h-4 text-[#71717a]" />
           </button>
         </div>
@@ -54,7 +54,7 @@ export function RequestList({
             if (req.status === "PENDING" || req.status === "UNDER_REVIEW") {
               statusColor = "text-amber-400 bg-amber-500/10 border-amber-500/20";
             } else if (req.status === "READY_FOR_APPROVAL") {
-              statusColor = "text-blue-400 bg-blue-500/10 border-blue-500/20";
+              statusColor = "text-brand-mint bg-brand-mint/10 border-brand-mint/20";
             } else if (req.status === "SHIPPED") {
               statusColor = "text-green-400 bg-green-500/10 border-green-500/20";
             }
@@ -69,7 +69,7 @@ export function RequestList({
                 key={req.id} 
                 className={`block p-4 rounded-xl cursor-pointer transition-all ${
                   isActive 
-                    ? "bg-[#13161F] border-2 border-blue-500 shadow-md" 
+                    ? "bg-surface-card border-2 border-blue-500 shadow-md" 
                     : "bg-transparent hover:bg-white/[0.02] border border-transparent"
                 }`}
               >

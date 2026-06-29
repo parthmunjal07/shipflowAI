@@ -1,7 +1,7 @@
 import { Inngest } from "inngest";
 
 type Events = {
-  "shipflow/feature-request.created": {
+  "the-wharf/feature-request.created": {
     data: {
       featureRequestId: string;
       projectId: string;
@@ -9,17 +9,17 @@ type Events = {
       content: string;
     };
   };
-  "shipflow/clarification.answered": {
+  "the-wharf/clarification.answered": {
     data: {
       featureRequestId: string;
       answers: string;
       round: number;
     };
   };
-  "shipflow/prd.generate": {
+  "the-wharf/prd.generate": {
     data: { featureRequestId: string };
   };
-  "shipflow/prd.generate-tasks": {
+  "the-wharf/prd.generate-tasks": {
     data: { featureRequestId: string };
   };
   "github/pull_request.opened": {
@@ -42,7 +42,7 @@ type Events = {
       payload: any;
     };
   };
-  "shipflow/pr.review-requested": {
+  "the-wharf/pr.review-requested": {
     data: {
       pullRequestId: string;
       githubInstallationDbId: string;
@@ -52,14 +52,14 @@ type Events = {
       headSha: string;
     };
   };
-  "shipflow/duplicate.responded": {
+  "the-wharf/duplicate.responded": {
     data: {
       featureRequestId: string;
       action: "merge" | "proceed" | "revise";
       revisedContent?: string;
     };
   };
-  "shipflow/feature-request.resolved": {
+  "the-wharf/feature-request.resolved": {
     data: {
       featureRequestId: string;
     };
@@ -67,7 +67,7 @@ type Events = {
 };
 
 export const inngest = new Inngest({
-  id: "shipflow-ai",
+  id: "the-wharf-ai",
   schemas: new Map() as any, // typed via generic
 }) as Inngest;
 

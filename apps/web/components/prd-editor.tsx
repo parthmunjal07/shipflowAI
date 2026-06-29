@@ -169,7 +169,7 @@ export function PrdEditor({ prd, isLocked = false }: { prd: PRD, isLocked?: bool
               type="button" 
               onClick={handleFinalize} 
               disabled={finalizeMutation.isPending || isEditing} 
-              className="px-4 py-2 text-sm font-medium border rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium border rounded-md bg-brand-mint text-brand-dark font-bold hover:bg-blue-700 disabled:opacity-50"
             >
               {finalizeMutation.isPending ? "Finalizing..." : "Finalize PRD"}
             </button>

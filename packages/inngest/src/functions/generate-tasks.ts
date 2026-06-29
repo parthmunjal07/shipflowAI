@@ -4,7 +4,7 @@ import { generateTaskBreakdown } from "@repo/ai";
 
 export const generateTasks = inngest.createFunction(
   { id: "generate-tasks" },
-  { event: "shipflow/prd.generate-tasks" },
+  { event: "the-wharf/prd.generate-tasks" },
   async ({ event, step }) => {
     const { featureRequestId } = event.data;
 

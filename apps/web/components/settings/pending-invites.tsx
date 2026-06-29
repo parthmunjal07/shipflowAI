@@ -37,7 +37,7 @@ export function PendingInvites({ invites }: { invites: PendingInvite[] }) {
       <h3 className="text-[14px] font-medium text-white/90 mb-3 px-1">
         Pending Invites ({invites.length})
       </h3>
-      <div className="bg-[#13161F] border border-[#27272a]/50 rounded-2xl flex flex-col divide-y divide-[#27272a]/50">
+      <div className="bg-surface-card border border-[#27272a]/50 rounded-2xl flex flex-col divide-y divide-[#27272a]/50">
         {invites.map((invite) => (
           <div key={invite.id} className="p-4 flex items-center justify-between group hover:bg-white/[0.02] transition-colors first:rounded-t-2xl last:rounded-b-2xl">
             <div className="flex flex-col gap-0.5">

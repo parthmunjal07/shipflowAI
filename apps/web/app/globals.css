@@ -2,7 +2,14 @@
 
 @theme {
   --color-brand-dark: #0d2a27;
+  --color-brand-darker: #081a18;
+  --color-brand-elevated: #133633;
   --color-brand-mint: #d1f7c4;
+  --color-brand-mintHover: #b5eb9f;
+  
+  --color-surface-base: #0A0D14;
+  --color-surface-card: #13161F;
+  --color-surface-elevated: #1A1E29;
 }
 :root {
   --background: #ffffff;

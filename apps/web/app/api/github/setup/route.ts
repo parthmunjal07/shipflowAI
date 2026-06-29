@@ -22,43 +22,50 @@ export async function GET(request: Request) {
 
   let targetOrgId: string | null = null;
 
-  // 2. Handle state-based installation (Started from ShipFlow)
+  // 2. Handle state-based installation (Started from The Wharf)
+  let session = await auth.api.getSession({ headers: await headers() });
+
   if (stateToken) {
     const stateRecord = await (prisma as any).githubInstallState.findUnique({
       where: { token: stateToken },
     });
 
-    if (!stateRecord) {
-      return NextResponse.json({ error: "Invalid or expired state token." }, { status: 400 });
-    }
+    if (stateRecord && stateRecord.expiresAt > new Date()) {
+      targetOrgId = stateRecord.organizationId;
+      
+      // Verify current user session actually has access to this org
+      if (session && session.user) {
+        const member = await (prisma as any).member.findFirst({
+          where: {
+            organizationId: targetOrgId,
+            userId: session.user.id
+          }
+        });
 
-    if (stateRecord.expiresAt < new Date()) {
-      return NextResponse.json({ error: "State token has expired." }, { status: 400 });
-    }
-
-    targetOrgId = stateRecord.organizationId;
-
-    // Verify current user session actually has access to this org
-    const session = await auth.api.getSession({ headers: await headers() });
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-    }
-    
-    // Check user's role in the org via member query.
-    const member = await (prisma as any).member.findFirst({
-      where: {
-        organizationId: targetOrgId,
-        userId: session.user.id
+        if (!member && session.session.activeOrganizationId !== targetOrgId) {
+           return NextResponse.json({ error: "Unauthorized. Active organization mismatch or not a member." }, { status: 403 });
+        }
       }
-    });
 
-    // If they aren't a member AND their active session org doesn't match, reject
-    if (!member && session.session.activeOrganizationId !== targetOrgId) {
-       return NextResponse.json({ error: "Unauthorized. Active organization mismatch or not a member." }, { status: 403 });
+      // Optional: delete state to prevent reuse
+      await (prisma as any).githubInstallState.delete({ where: { id: stateRecord.id } });
     }
+  }
 
-    // Optional: delete state to prevent reuse
-    await (prisma as any).githubInstallState.delete({ where: { id: stateRecord.id } });
+  // Fallback: If no stateToken (installed directly via GitHub) or stateToken was invalid,
+  // try to use the user's active organization from their session.
+  if (!targetOrgId && session && session.user) {
+    if (session.session.activeOrganizationId) {
+      targetOrgId = session.session.activeOrganizationId;
+    } else {
+      // Find the first organization the user is a part of
+      const member = await (prisma as any).member.findFirst({
+        where: { userId: session.user.id }
+      });
+      if (member) {
+        targetOrgId = member.organizationId;
+      }
+    }
   }
 
   // 3. Security Check & Fallback

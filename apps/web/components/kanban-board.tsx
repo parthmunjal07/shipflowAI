@@ -21,7 +21,7 @@ export type KanbanTask = {
 
 const COLUMNS: { id: DBTaskStatus; title: string; badgeColor: string }[] = [
   { id: "TODO", title: "To Do", badgeColor: "bg-white/[0.05] text-[#a1a1aa]" },
-  { id: "IN_PROGRESS", title: "In Progress", badgeColor: "bg-blue-500/20 text-blue-400" },
+  { id: "IN_PROGRESS", title: "In Progress", badgeColor: "bg-brand-mint/20 text-brand-mint" },
   { id: "IN_REVIEW", title: "In Review", badgeColor: "bg-purple-500/20 text-purple-400" },
   { id: "DONE", title: "Done", badgeColor: "bg-green-500/20 text-green-400" }
 ];
@@ -31,7 +31,7 @@ export function KanbanBoard({
   featureRequestId 
 }: { 
   initialTasks: KanbanTask[],
-  featureRequestId: string 
+  featureRequestId?: string 
 }) {
   const [isClient, setIsClient] = useState(false);
   const [tasks, setTasks] = useState<KanbanTask[]>(initialTasks);
@@ -115,25 +115,27 @@ export function KanbanBoard({
     <>
       {/* Kanban Board Area */}
       {!hasTasks && (
-        <div className="bg-[#13161F] border border-[#27272a]/50 rounded-2xl p-8 mb-12">
+        <div className="bg-surface-card border border-[#27272a]/50 rounded-2xl p-8 mb-12">
           <div className="flex items-start justify-between mb-8">
             <div>
               <h2 className="text-[20px] font-bold text-white mb-2">Empty state</h2>
               <p className="text-[#a1a1aa] text-[14px]">Generate tasks from the PRD acceptance criteria to populate this board.</p>
             </div>
-            <button 
-              onClick={handleGenerate}
-              disabled={generateTasksMutation.isPending}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/20 transition-colors text-blue-500 text-[13px] font-medium rounded-lg disabled:opacity-50"
-            >
-              {generateTasksMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              Generate Tasks from PRD
-            </button>
+            {featureRequestId && (
+              <button 
+                onClick={handleGenerate}
+                disabled={generateTasksMutation.isPending}
+                className="flex items-center gap-2 px-4 py-2 bg-brand-mint text-brand-dark font-bold/10 hover:bg-brand-mint text-brand-dark font-bold/20 border border-brand-mint/20 transition-colors text-brand-mint text-[13px] font-medium rounded-lg disabled:opacity-50"
+              >
+                {generateTasksMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                Generate Tasks from PRD
+              </button>
+            )}
           </div>
           
-          <div className="border border-dashed border-[#27272a] bg-[#0A0D14] rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-            <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-4">
-              <CheckCircle2 className="w-6 h-6 text-blue-500" />
+          <div className="border border-dashed border-[#27272a] bg-surface-base rounded-2xl p-12 flex flex-col items-center justify-center text-center">
+            <div className="w-12 h-12 bg-brand-mint/10 rounded-xl flex items-center justify-center mb-4">
+              <CheckCircle2 className="w-6 h-6 text-brand-mint" />
             </div>
             <h3 className="text-[16px] font-bold text-white mb-2">No tasks yet</h3>
             <p className="text-[#71717a] text-[14px]">Generate tasks from the PRD acceptance criteria to populate this board.</p>
@@ -165,7 +167,7 @@ export function KanbanBoard({
                       ref={provided.innerRef}
                       {...provided.droppableProps}
                       className={`flex flex-col gap-3 p-3 rounded-2xl border transition-colors min-h-[150px] ${
-                        snapshot.isDraggingOver ? "bg-[#13161F]/80 border-blue-500/30" : "bg-[#13161F] border-[#27272a]/50"
+                        snapshot.isDraggingOver ? "bg-surface-card/80 border-brand-mint/30" : "bg-surface-card border-[#27272a]/50"
                       }`}
                     >
                       {column.id === "TODO" && (
@@ -208,16 +210,16 @@ export function KanbanBoard({
 
 function TaskCard({ task, isDragging }: { task: KanbanTask, isDragging: boolean }) {
   let borderClass = "border-[#27272a]";
-  if (task.status === "IN_PROGRESS") borderClass = "border-l-2 border-l-blue-500 border-t-[#27272a] border-r-[#27272a] border-b-[#27272a]";
+  if (task.status === "IN_PROGRESS") borderClass = "border-l-2 border-l-brand-mint border-t-[#27272a] border-r-[#27272a] border-b-[#27272a]";
   if (task.status === "IN_REVIEW") borderClass = "border-l-2 border-l-purple-500 border-t-[#27272a] border-r-[#27272a] border-b-[#27272a]";
   if (task.status === "DONE") borderClass = "border-l-2 border-l-emerald-500 border-t-[#27272a] border-r-[#27272a] border-b-[#27272a]";
 
   if (isDragging) {
-    borderClass = "border-2 border-blue-500 shadow-xl shadow-blue-900/20 rotate-2";
+    borderClass = "border-2 border-brand-mint shadow-xl shadow-brand-mint/20 rotate-2";
   }
 
   return (
-    <div className={`bg-[#1A1E29] rounded-xl p-4 border ${borderClass} hover:border-[#52525b] transition-colors cursor-grab`}>
+    <div className={`bg-surface-elevated rounded-xl p-4 border ${borderClass} hover:border-[#52525b] transition-colors cursor-grab`}>
       <div className="flex items-center justify-between mb-3">
         <span className="text-[11px] font-bold text-[#71717a] tracking-widest">TSK-{task.id.slice(-4).toUpperCase()}</span>
         <div className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[9px] font-semibold ${task.avatarColor}`}>

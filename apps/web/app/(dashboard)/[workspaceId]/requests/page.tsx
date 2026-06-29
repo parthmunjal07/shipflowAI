@@ -44,9 +44,9 @@ export default async function FeatureRequestsPage({
     });
   }
 
-  // Fetch all feature requests for this project
+  // Fetch all feature requests for this organization
   const requests = await prisma.featureRequest.findMany({
-    where: { projectId: project.id },
+    where: { project: { organizationId: organization.id } },
     orderBy: { createdAt: 'desc' },
     include: {
       createdBy: {

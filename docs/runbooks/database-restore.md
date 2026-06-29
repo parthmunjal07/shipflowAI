@@ -16,7 +16,7 @@ If a critical failure occurs (e.g., accidental dropping of production tables, ca
    - Go to the **Actions** tab in GitHub.
    - Select the **Database Backup** workflow.
    - Click the latest successful run.
-   - Download the artifact attached at the bottom (e.g., `shipflow_backup_2026-06-25_02-00-00.sql.gz`).
+   - Download the artifact attached at the bottom (e.g., `the_wharf_backup_2026-06-25_02-00-00.sql.gz`).
 3. **Database Credentials**: You need the target `DATABASE_URL` for the database you are restoring *into*.
 
 ## Restore Procedure
@@ -25,9 +25,9 @@ If a critical failure occurs (e.g., accidental dropping of production tables, ca
 Extract the downloaded `.gz` file:
 ```bash
 # macOS/Linux
-gunzip shipflow_backup_2026-06-25_02-00-00.sql.gz
+gunzip the_wharf_backup_2026-06-25_02-00-00.sql.gz
 
-# You should now have an uncompressed file: shipflow_backup_2026-06-25_02-00-00.sql
+# You should now have an uncompressed file: the_wharf_backup_2026-06-25_02-00-00.sql
 ```
 
 ### Step 2: Prepare the Target Database
@@ -48,7 +48,7 @@ GRANT ALL ON SCHEMA public TO public;
 Run the `psql` command to stream the SQL file into the database. Replace `TARGET_DATABASE_URL` with your connection string.
 
 ```bash
-psql "TARGET_DATABASE_URL" -f shipflow_backup_2026-06-25_02-00-00.sql
+psql "TARGET_DATABASE_URL" -f the_wharf_backup_2026-06-25_02-00-00.sql
 ```
 
 ### Step 4: Verify the Restore

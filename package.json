@@ -1,5 +1,5 @@
 {
-  "name": "shipflowai",
+  "name": "The Wharf",
   "private": true,
   "scripts": {
     "build": "turbo run build",

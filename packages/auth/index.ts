@@ -30,7 +30,7 @@ export const auth = betterAuth({
 
         if (resend) {
           await resend.emails.send({
-            from: "ShipFlow AI <invites@resend.dev>", // resend.dev for testing, update to verified domain later
+            from: "The Wharf <invites@resend.dev>", // resend.dev for testing, update to verified domain later
             to: data.email,
             subject: "You have been invited to join a workspace",
             html: `<p>You have been invited to join an organization with the role <strong>${data.role}</strong>.</p>

@@ -95,7 +95,7 @@ export function ApprovalActions({ featureRequestId, currentStatus }: { featureRe
           <button
             onClick={handleShip}
             disabled={isSubmitting}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-colors disabled:opacity-50"
+            className="w-full bg-brand-mint hover:bg-blue-700 text-brand-dark font-bold font-bold py-3 px-4 rounded-xl transition-colors disabled:opacity-50"
           >
             {isSubmitting ? "Updating..." : "Approve & Ship"}
           </button>

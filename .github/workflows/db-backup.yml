@@ -35,7 +35,7 @@ jobs:
           
           # Generate a timestamped filename
           TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
-          FILENAME="shipflow_backup_${TIMESTAMP}.sql.gz"
+          FILENAME="the_wharf_backup_${TIMESTAMP}.sql.gz"
           
           echo "Starting logical backup..."
           

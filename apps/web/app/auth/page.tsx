@@ -4,17 +4,46 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Eye, EyeOff, Box, ArrowRight, Plus } from "lucide-react";
-import { authClient } from "../../lib/auth-client";
+import { authClient, useSession, useListOrganizations } from "../../lib/auth-client";
+import { useEffect } from "react";
 
 export default function AuthPage() {
   const router = useRouter();
+  const { data: session, isPending: sessionLoading } = useSession();
+  const { data: orgs, isPending: orgsLoading } = useListOrganizations();
+
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [creatingOrg, setCreatingOrg] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (session && orgs && !orgsLoading) {
+      if (orgs.length === 1) {
+        // Auto-redirect if they only have one workspace
+        router.push(`/${orgs[0].id}`);
+      }
+    }
+  }, [session, orgs, orgsLoading, router]);
+
+  const handleCreateWorkspace = async () => {
+    setCreatingOrg(true);
+    try {
+      const { data, error } = await authClient.organization.create({
+        name: `${session?.user.name || 'My'} Workspace`,
+        slug: `workspace-${Date.now()}`
+      });
+      if (data) {
+        router.push(`/${data.id}`);
+      }
+    } finally {
+      setCreatingOrg(false);
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -106,12 +135,12 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0D14] text-white flex flex-col lg:flex-row font-[family-name:var(--font-geist-sans)] selection:bg-blue-500/30 relative">
+    <div className="min-h-screen bg-surface-base text-white flex flex-col lg:flex-row font-[family-name:var(--font-geist-sans)] selection:bg-brand-mint text-brand-dark font-bold/30 relative">
       
       {/* Central Divider with "OR" Badge */}
       <div className="hidden lg:flex absolute left-1/2 top-0 bottom-0 -translate-x-1/2 flex-col items-center justify-center z-20 pointer-events-none">
         <div className="w-[1px] h-full bg-[#27272a]/50"></div>
-        <div className="absolute top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[#0A0D14] border border-[#27272a] flex items-center justify-center text-[10px] font-bold text-[#71717a] tracking-[0.2em]">
+        <div className="absolute top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-surface-base border border-[#27272a] flex items-center justify-center text-[10px] font-bold text-[#71717a] tracking-[0.2em]">
           OR
         </div>
       </div>
@@ -122,11 +151,11 @@ export default function AuthPage() {
 
           {/* Logo & Header */}
           <div className="flex items-center gap-3 mb-12">
-            <div className="w-7 h-7 text-blue-500 flex items-center justify-center">
+            <div className="w-7 h-7 text-brand-mint flex items-center justify-center">
               <Box className="w-5 h-5" strokeWidth={2.5} />
             </div>
             <span className="font-bold text-[14px] tracking-[0.2em] text-white/90">
-              SHIPFLOW AI
+              The Wharf
             </span>
           </div>
 
@@ -139,7 +168,7 @@ export default function AuthPage() {
             >
               Sign In
               {isLogin && (
-                <div className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-blue-500 rounded-t-full" />
+                <div className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-brand-mint text-brand-dark font-bold rounded-t-full" />
               )}
             </button>
             <button
@@ -149,7 +178,7 @@ export default function AuthPage() {
             >
               Sign Up
               {!isLogin && (
-                <div className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-blue-500 rounded-t-full" />
+                <div className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-brand-mint text-brand-dark font-bold rounded-t-full" />
               )}
             </button>
           </div>
@@ -170,7 +199,7 @@ export default function AuthPage() {
                   disabled={loading}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full h-11 px-3 bg-[#0A0D14] border border-[#27272a] rounded-lg text-white text-[14px] focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-[#52525b] disabled:opacity-50"
+                  className="w-full h-11 px-3 bg-surface-base border border-[#27272a] rounded-lg text-white text-[14px] focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-[#52525b] disabled:opacity-50"
                   placeholder="John Doe"
                 />
               </div>
@@ -184,7 +213,7 @@ export default function AuthPage() {
                 disabled={loading}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-11 px-3 bg-[#0A0D14] border border-[#27272a] rounded-lg text-white text-[14px] focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-[#52525b] disabled:opacity-50"
+                className="w-full h-11 px-3 bg-surface-base border border-[#27272a] rounded-lg text-white text-[14px] focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-[#52525b] disabled:opacity-50"
                 placeholder="name@company.com"
               />
             </div>
@@ -200,7 +229,7 @@ export default function AuthPage() {
                   disabled={loading}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-11 px-3 pr-10 bg-[#0A0D14] border border-[#27272a] rounded-lg text-white text-[14px] focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-[#52525b] disabled:opacity-50"
+                  className="w-full h-11 px-3 pr-10 bg-surface-base border border-[#27272a] rounded-lg text-white text-[14px] focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-[#52525b] disabled:opacity-50"
                   placeholder="Enter your password"
                 />
                 <button
@@ -213,7 +242,7 @@ export default function AuthPage() {
               </div>
               {isLogin && (
                 <div className="flex justify-end mt-1">
-                  <Link href="#" className="text-[12px] font-medium text-blue-500 hover:text-blue-400 transition-colors">
+                  <Link href="#" className="text-[12px] font-medium text-brand-mint hover:text-brand-mint transition-colors">
                     Forgot password?
                   </Link>
                 </div>
@@ -223,7 +252,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-4 w-full h-11 rounded-lg bg-blue-500 text-white text-[14px] font-medium hover:bg-blue-400 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.2)]"
+              className="mt-4 w-full h-11 rounded-lg bg-brand-mint text-brand-dark font-bold text-[14px] font-medium hover:bg-blue-400 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.2)]"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -281,83 +310,53 @@ export default function AuthPage() {
           </p>
 
           <div className="flex flex-col gap-3 mb-8">
-            {/* Workspace Card 1 */}
-            <Link href="/acme-corp" className="flex items-center justify-between p-4 rounded-xl bg-transparent border border-[#27272a] hover:bg-white/[0.02] transition-colors group">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-[14px] font-bold shadow-inner shrink-0">
-                  AC
-                </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-[14px] font-bold text-white/90">Acme Corp Engineering</span>
-                    <span className="px-2 py-0.5 rounded text-blue-500 text-[9px] font-bold bg-blue-500/10">
-                      Admin
-                    </span>
+            {orgsLoading || sessionLoading ? (
+              <div className="flex justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-[#71717a]" /></div>
+            ) : orgs?.map((org: any) => (
+              <Link key={org.id} href={`/${org.id}`} className="flex items-center justify-between p-4 rounded-xl bg-transparent border border-[#27272a] hover:bg-white/[0.02] transition-colors group">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-surface-elevated border border-[#27272a] flex items-center justify-center text-white text-[14px] font-bold shrink-0">
+                    {org.name.substring(0, 2).toUpperCase()}
                   </div>
-                  <span className="text-[12px] text-[#71717a]">14 members</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-1 text-[13px] font-medium text-white/70 group-hover:text-white transition-colors">
-                Open <ArrowRight className="w-3.5 h-3.5" />
-              </div>
-            </Link>
-
-            {/* Workspace Card 2 */}
-            <Link href="/relay-systems" className="flex items-center justify-between p-4 rounded-xl bg-transparent border border-[#27272a] hover:bg-white/[0.02] transition-colors group">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#1A1E29] border border-[#27272a] flex items-center justify-center text-white text-[14px] font-bold shrink-0">
-                  RS
-                </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-[14px] font-bold text-white/90">Relay Systems</span>
-                    <span className="px-2 py-0.5 rounded text-[#a1a1aa] text-[9px] font-bold bg-white/[0.05]">
-                      Member
-                    </span>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-[14px] font-bold text-white/90">{org.name}</span>
+                      <span className="px-2 py-0.5 rounded text-brand-mint text-[9px] font-bold bg-brand-mint/10">
+                        {org.role || 'Member'}
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-[12px] text-[#71717a]">8 members</span>
                 </div>
-              </div>
-              <div className="flex items-center gap-1 text-[13px] font-medium text-white/70 group-hover:text-white transition-colors">
-                Open <ArrowRight className="w-3.5 h-3.5" />
-              </div>
-            </Link>
-
-            {/* Workspace Card 3 */}
-            <Link href="/northbridge" className="flex items-center justify-between p-4 rounded-xl bg-transparent border border-[#27272a] hover:bg-white/[0.02] transition-colors group">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#1A1E29] border border-[#27272a] flex items-center justify-center text-white text-[14px] font-bold shrink-0">
-                  NB
+                <div className="flex items-center gap-1 text-[13px] font-medium text-white/70 group-hover:text-white transition-colors">
+                  Open <ArrowRight className="w-3.5 h-3.5" />
                 </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-[14px] font-bold text-white/90">Northbridge Labs</span>
-                    <span className="px-2 py-0.5 rounded text-[#a1a1aa] text-[9px] font-bold bg-white/[0.05]">
-                      Viewer
-                    </span>
-                  </div>
-                  <span className="text-[12px] text-[#71717a]">22 members</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-1 text-[13px] font-medium text-white/70 group-hover:text-white transition-colors">
-                Open <ArrowRight className="w-3.5 h-3.5" />
-              </div>
-            </Link>
+              </Link>
+            ))}
           </div>
 
-          <button className="flex items-center gap-1.5 text-[13px] font-bold text-blue-500 hover:text-blue-400 transition-colors mb-8">
-            <Plus className="w-4 h-4" />
+          <button 
+            onClick={handleCreateWorkspace}
+            disabled={creatingOrg || !session}
+            className="flex items-center gap-1.5 text-[13px] font-bold text-brand-mint hover:text-brand-mint transition-colors mb-8 disabled:opacity-50"
+          >
+            {creatingOrg ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
             Create new workspace
           </button>
 
-          <div className="bg-[#101115] border border-dashed border-[#27272a] rounded-xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-12">
-            <p className="text-[13px] text-[#a1a1aa] leading-relaxed">
-              No workspaces yet — create one to<br className="hidden sm:block" /> get started.
-            </p>
-            <button className="px-5 py-2.5 rounded-lg bg-blue-500 hover:bg-blue-400 transition-colors text-white text-[13px] font-bold whitespace-nowrap shrink-0 shadow-sm">
-              Create Workspace
-            </button>
-          </div>
+          {(!orgs || orgs.length === 0) && !orgsLoading && (
+            <div className="bg-[#101115] border border-dashed border-[#27272a] rounded-xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-12">
+              <p className="text-[13px] text-[#a1a1aa] leading-relaxed">
+                No workspaces yet — create one to<br className="hidden sm:block" /> get started.
+              </p>
+              <button 
+                onClick={handleCreateWorkspace}
+                disabled={creatingOrg || !session}
+                className="px-5 py-2.5 rounded-lg bg-brand-mint hover:bg-brand-mintHover transition-colors text-brand-dark font-bold text-[13px] whitespace-nowrap shrink-0 shadow-sm disabled:opacity-50"
+              >
+                Create Workspace
+              </button>
+            </div>
+          )}
 
           <button 
             onClick={handleSignOut}

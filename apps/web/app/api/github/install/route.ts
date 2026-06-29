@@ -47,7 +47,7 @@ export async function GET(request: Request) {
   });
 
   // Redirect to GitHub App installation page with the state
-  const githubAppName = process.env.NEXT_PUBLIC_GITHUB_APP_NAME || "shipflow-local-dev";
+  const githubAppName = process.env.NEXT_PUBLIC_GITHUB_APP_NAME || "the-wharf-local-dev";
   const githubInstallUrl = `https://github.com/apps/${githubAppName}/installations/new?state=${token}`;
 
   return NextResponse.redirect(githubInstallUrl);

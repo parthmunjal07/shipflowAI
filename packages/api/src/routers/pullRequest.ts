@@ -121,7 +121,7 @@ export const pullRequestRouter = router({
 
       // Dispatch the Inngest event
       await inngest.send({
-        name: "shipflow/pr.review-requested",
+        name: "the-wharf/pr.review-requested",
         data: {
           pullRequestId: pr.id,
           githubInstallationDbId: pr.repository.installationId,

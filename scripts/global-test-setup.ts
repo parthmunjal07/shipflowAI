@@ -9,7 +9,7 @@ export default async function globalSetup() {
   console.log("[Test Setup] Starting PostgreSQL container with pgvector...");
   
   container = await new PostgreSqlContainer("pgvector/pgvector:pg16")
-    .withDatabase("shipflow_test")
+    .withDatabase("the_wharf_test")
     .withUsername("postgres")
     .withPassword("postgres")
     .start();

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FileText, KanbanSquare, GitBranch, Eye, History, CreditCard, Settings } from "lucide-react";
+import { LayoutDashboard, FileText, KanbanSquare, GitBranch, Eye, History, CreditCard, Settings, Folder } from "lucide-react";
 
 export function SidebarNav({ activeOrgId }: { activeOrgId: string }) {
   const pathname = usePathname();
@@ -13,6 +13,7 @@ export function SidebarNav({ activeOrgId }: { activeOrgId: string }) {
     { href: `/${activeOrgId}/prd`, label: "PRD Editor", icon: FileText },
     { href: `/${activeOrgId}/tasks`, label: "Task Board", icon: KanbanSquare },
     { divider: true },
+    { href: `/${activeOrgId}/projects`, label: "Projects", icon: Folder },
     { href: `/${activeOrgId}/github`, label: "GitHub", icon: GitBranch },
     { href: `/${activeOrgId}/pull-requests`, label: "PR Review", icon: Eye },
     { href: `/${activeOrgId}/history`, label: "Review History", icon: History },
@@ -45,7 +46,7 @@ export function SidebarNav({ activeOrgId }: { activeOrgId: string }) {
                 : "text-[#a1a1aa] hover:text-white hover:bg-white/[0.03] border border-transparent"
             }`}
           >
-            <Icon className={`w-4 h-4 ${isActive ? "text-blue-400" : ""}`} />
+            <Icon className={`w-4 h-4 ${isActive ? "text-brand-mint" : ""}`} />
             <span className="text-[14px]">{link.label}</span>
           </Link>
         );

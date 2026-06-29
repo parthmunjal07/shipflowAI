@@ -7,7 +7,7 @@ import { prisma } from "@repo/db";
 
 export const processPrReview = inngest.createFunction(
   { id: "github-pr-review" },
-  { event: "shipflow/pr.review-requested" },
+  { event: "the-wharf/pr.review-requested" },
   async ({ event, step }) => {
     const { pullRequestId, githubInstallationDbId, owner, repo, pullNumber, headSha } = event.data;
 
@@ -45,13 +45,13 @@ export const processPrReview = inngest.createFunction(
           repo,
           pull_number: pullNumber,
           event: "COMMENT",
-          body: `⚠️ **ShipFlow AI Review Skipped: Billing Limit Reached**\n\nYour organization has reached its limit of ${deniedStatus.limit} AI Reviews for the current billing cycle on the ${deniedStatus.plan} plan.\n\nPlease upgrade your plan in the ShipFlow dashboard to resume automated reviews.`,
+          body: `⚠️ **The Wharf Review Skipped: Billing Limit Reached**\n\nYour organization has reached its limit of ${deniedStatus.limit} AI Reviews for the current billing cycle on the ${deniedStatus.plan} plan.\n\nPlease upgrade your plan in the The Wharf dashboard to resume automated reviews.`,
         });
 
         await octokit.rest.checks.create({
           owner,
           repo,
-          name: "ShipFlow AI Review",
+          name: "The Wharf Review",
           head_sha: headSha,
           status: "completed",
           conclusion: "neutral",
@@ -84,20 +84,20 @@ export const processPrReview = inngest.createFunction(
           repo,
           pull_number: pullNumber,
           event: "COMMENT",
-          body: "⚠️ **ShipFlow AI Review Skipped: No Tasks Linked**\n\nThis Pull Request is not linked to any ShipFlow Tasks, meaning I don't have a PRD or Acceptance Criteria to evaluate it against.\n\nPlease link a task by adding `SF-[number]` to the PR description or branch name, and synchronize the PR again.\n\n*If this PR is intentionally not linked to a task (e.g., a chore or hotfix), please consult your team's manual review process.*",
+          body: "⚠️ **The Wharf Review Skipped: No Tasks Linked**\n\nThis Pull Request is not linked to any The Wharf Tasks, meaning I don't have a PRD or Acceptance Criteria to evaluate it against.\n\nPlease link a task by adding `SF-[number]` to the PR description or branch name, and synchronize the PR again.\n\n*If this PR is intentionally not linked to a task (e.g., a chore or hotfix), please consult your team's manual review process.*",
         });
 
         // Update the Check Run to action_required
         await octokit.rest.checks.create({
           owner,
           repo,
-          name: "ShipFlow AI Review",
+          name: "The Wharf Review",
           head_sha: headSha,
           status: "completed",
           conclusion: "action_required",
           output: {
             title: "Task Link Required",
-            summary: "Please link a ShipFlow Task to this PR to enable automated review.",
+            summary: "Please link a The Wharf Task to this PR to enable automated review.",
           },
         });
 
@@ -117,7 +117,7 @@ export const processPrReview = inngest.createFunction(
               },
               headSha,
               conclusion: "AWAITING_TASK_LINK",
-              summary: "Skipped: No ShipFlow Tasks linked to this Pull Request.",
+              summary: "Skipped: No The Wharf Tasks linked to this Pull Request.",
             },
           }),
         ]);
@@ -172,7 +172,7 @@ export const processPrReview = inngest.createFunction(
             });
           } else {
             // Graceful Fallback
-            console.warn(`[ShipFlow AI] inlineMatchFailed: true for ${issue.filePath}`);
+            console.warn(`[The Wharf] inlineMatchFailed: true for ${issue.filePath}`);
             
             if (!hasFallbackIssues) {
               body += "### Specific Issues (Could not anchor inline):\n";
@@ -207,7 +207,7 @@ export const processPrReview = inngest.createFunction(
       await octokit.rest.checks.create({
         owner,
         repo,
-        name: "ShipFlow AI Review",
+        name: "The Wharf Review",
         head_sha: headSha,
         status: "completed",
         conclusion: reviewResult.isApproved ? "success" : "failure",

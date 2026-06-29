@@ -2,7 +2,7 @@ import fs from 'fs';
 
 function fixEnv() {
   const pemPath = 'c:\\Users\\chand\\Downloads\\the-wharf-local.2026-06-26.private-key.pem';
-  const envPath = 'c:\\Users\\chand\\OneDrive\\Desktop\\Coding\\Web Dev\\Projects\\Cohort\\shipflowAI\\apps\\web\\.env';
+  const envPath = 'c:\\Users\\chand\\OneDrive\\Desktop\\Coding\\Web Dev\\Projects\\Cohort\\The Wharf\\apps\\web\\.env';
 
   const pem = fs.readFileSync(pemPath, 'utf8');
   // Replace actual newlines with literal \n

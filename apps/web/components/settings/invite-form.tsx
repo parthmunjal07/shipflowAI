@@ -47,7 +47,7 @@ export function InviteForm({
   };
 
   return (
-    <div className="bg-[#13161F] border border-[#27272a]/50 rounded-2xl p-6">
+    <div className="bg-surface-card border border-[#27272a]/50 rounded-2xl p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-[16px] font-semibold text-white/90">Invite to {workspaceName}</h2>
         <X className="w-4 h-4 text-[#52525b] hover:text-white cursor-pointer transition-colors" />
@@ -62,7 +62,7 @@ export function InviteForm({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={loading}
-            className="w-full bg-[#0A0D14] border border-[#27272a]/50 rounded-xl px-3 py-2.5 text-[14px] text-white placeholder:text-[#52525b] focus:outline-none focus:border-blue-500/50 transition-colors disabled:opacity-50"
+            className="w-full bg-surface-base border border-[#27272a]/50 rounded-xl px-3 py-2.5 text-[14px] text-white placeholder:text-[#52525b] focus:outline-none focus:border-blue-500/50 transition-colors disabled:opacity-50"
           />
         </div>
 
@@ -73,7 +73,7 @@ export function InviteForm({
               value={role}
               onChange={(e) => setRole(e.target.value as any)}
               disabled={loading}
-              className="w-full bg-[#0A0D14] border border-[#27272a]/50 rounded-xl px-3 py-2.5 text-[14px] text-white appearance-none focus:outline-none focus:border-blue-500/50 transition-colors disabled:opacity-50"
+              className="w-full bg-surface-base border border-[#27272a]/50 rounded-xl px-3 py-2.5 text-[14px] text-white appearance-none focus:outline-none focus:border-blue-500/50 transition-colors disabled:opacity-50"
             >
               <option value="member">Member</option>
               <option value="admin">Admin</option>
@@ -90,7 +90,7 @@ export function InviteForm({
         <button 
           onClick={handleInvite}
           disabled={loading || !email.trim()}
-          className="w-full py-2.5 rounded-xl flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-[14px] font-medium transition-colors mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-2.5 rounded-xl flex items-center justify-center gap-2 bg-brand-mint hover:bg-brand-mintHover text-brand-dark font-bold text-[14px] font-medium transition-colors mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading && <Loader2 className="w-4 h-4 animate-spin" />}
           Send Invite

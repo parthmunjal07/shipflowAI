@@ -5,7 +5,7 @@ import React from "react";
 
 export default function PRReviewPage() {
   return (
-    <div className="flex flex-col h-full bg-[#0A0D14] overflow-hidden">
+    <div className="flex flex-col h-full bg-surface-base overflow-hidden">
       
       {/* Header */}
       <div className="px-8 py-6 border-b border-[#27272a]/50 shrink-0">
@@ -22,11 +22,11 @@ export default function PRReviewPage() {
         
         <div className="flex items-center gap-4 text-[13px]">
           <span className="text-[#a1a1aa]">acmecorp/auth-service</span>
-          <span className="px-2 py-0.5 rounded border border-blue-500/20 bg-blue-500/10 text-blue-400 font-semibold text-[11px]">
+          <span className="px-2 py-0.5 rounded border border-brand-mint/20 bg-brand-mint/10 text-brand-mint font-semibold text-[11px]">
             Open
           </span>
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-[9px] font-bold">
+            <div className="w-5 h-5 rounded-full bg-brand-mint flex items-center justify-center text-brand-dark font-bold text-[9px] font-bold">
               PN
             </div>
             <span className="text-white/90 font-medium">Priya Nair</span>
@@ -45,8 +45,8 @@ export default function PRReviewPage() {
       <div className="flex-1 flex overflow-hidden">
         
         {/* Left Column: Code Diff */}
-        <div className="flex-1 border-r border-[#27272a]/50 flex flex-col bg-[#0A0D14] overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-2 bg-[#13161F] border-b border-[#27272a]/50 shrink-0">
+        <div className="flex-1 border-r border-[#27272a]/50 flex flex-col bg-surface-base overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-2 bg-surface-card border-b border-[#27272a]/50 shrink-0">
             <div className="flex items-center gap-2 text-[#a1a1aa] text-[13px] font-mono">
               <ChevronDown className="w-4 h-4" />
               src/auth/sso_handler.ts
@@ -56,7 +56,7 @@ export default function PRReviewPage() {
             </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto bg-[#0A0D14] font-mono text-[13px] leading-[1.6]">
+          <div className="flex-1 overflow-y-auto bg-surface-base font-mono text-[13px] leading-[1.6]">
             
             <DiffRow numL={1} numR={1} text="import { Request, Response } from 'express';" />
             <DiffRow numL={2} numR={2} text="import { OAuthClient } from '../lib/oauth';" />
@@ -95,11 +95,11 @@ export default function PRReviewPage() {
         </div>
 
         {/* Right Column: AI Review Comments */}
-        <div className="w-[480px] flex-shrink-0 flex flex-col bg-[#13161F] relative">
+        <div className="w-[480px] flex-shrink-0 flex flex-col bg-surface-card relative">
           
-          <div className="px-6 py-4 border-b border-[#27272a]/50 flex items-center justify-between shrink-0 bg-[#13161F] z-10">
+          <div className="px-6 py-4 border-b border-[#27272a]/50 flex items-center justify-between shrink-0 bg-surface-card z-10">
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-blue-500 fill-blue-500" />
+              <Zap className="w-4 h-4 text-brand-mint fill-blue-500" />
               <h2 className="text-[15px] font-bold text-white">AI Review Comments</h2>
               <span className="px-1.5 py-0.5 bg-white/[0.05] text-[#a1a1aa] rounded text-[11px] font-bold">6</span>
             </div>
@@ -143,8 +143,8 @@ export default function PRReviewPage() {
             <CommentCard 
               severity="NON-BLOCKING" 
               category="PRD MISMATCH"
-              categoryColor="text-blue-500"
-              categoryBg="bg-blue-500/10"
+              categoryColor="text-brand-mint"
+              categoryBg="bg-brand-mint/10"
               text="PRD requires SSO to support SAML 2.0 but implementation only handles OAuth 2.0. SAML provider integration is missing entirely."
               line="Line 6 · src/auth/sso_handler.ts"
             />
@@ -162,7 +162,7 @@ export default function PRReviewPage() {
           </div>
 
           {/* Sticky Action Footer */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 bg-[#13161F] border-t border-[#27272a]/50">
+          <div className="absolute bottom-0 left-0 right-0 p-6 bg-surface-card border-t border-[#27272a]/50">
             <div className="flex items-center gap-4 mb-2">
               <button className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#27272a]/50 text-[#71717a] rounded-lg text-[14px] font-bold cursor-not-allowed">
                 <CheckCircle2 className="w-4 h-4" />
@@ -254,7 +254,7 @@ function CommentCard({
   if (severity === "RESOLVED") severityColor = "text-emerald-500";
 
   return (
-    <div className={`bg-[#0A0D14] rounded-xl p-5 border ${resolved ? 'border-[#27272a]/30 opacity-70' : 'border-[#27272a]/50'}`}>
+    <div className={`bg-surface-base rounded-xl p-5 border ${resolved ? 'border-[#27272a]/30 opacity-70' : 'border-[#27272a]/50'}`}>
       <div className="flex items-center justify-between mb-4">
         <span className={`text-[10px] font-bold tracking-widest ${severityColor}`}>
           {severity}

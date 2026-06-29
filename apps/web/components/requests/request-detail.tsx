@@ -27,7 +27,7 @@ export function RequestDetail({ request, workspaceId }: { request: any, workspac
 
   if (!request) {
     return (
-      <div className="flex-1 flex flex-col h-full bg-[#0A0D14] items-center justify-center">
+      <div className="flex-1 flex flex-col h-full bg-surface-base items-center justify-center">
         <p className="text-[#71717a] text-[14px]">Select a feature request to view details</p>
       </div>
     );
@@ -37,7 +37,7 @@ export function RequestDetail({ request, workspaceId }: { request: any, workspac
   const dateStr = format(new Date(request.createdAt), "MMM d, yyyy");
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#0A0D14] overflow-y-auto">
+    <div className="flex-1 flex flex-col h-full bg-surface-base overflow-y-auto">
       <div className="p-8 lg:p-10 max-w-4xl w-full mx-auto">
         
         {/* Breadcrumbs & Actions */}
@@ -63,7 +63,7 @@ export function RequestDetail({ request, workspaceId }: { request: any, workspac
                 View Tasks
               </Link>
             ) : !request.prd && (
-              <button className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 transition-colors text-white text-[13px] font-medium rounded-lg shadow-sm">
+              <button className="flex items-center gap-1.5 px-4 py-2 bg-brand-mint hover:bg-brand-mintHover text-brand-dark font-bold transition-colors text-white text-[13px] font-medium rounded-lg shadow-sm">
                 Generate PRD
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -77,7 +77,7 @@ export function RequestDetail({ request, workspaceId }: { request: any, workspac
 
         {/* Meta Info */}
         <div className="flex items-center gap-4 mb-8 text-[13px]">
-          <span className="px-2.5 py-1 rounded border border-blue-500/20 bg-blue-500/10 text-blue-400 font-semibold text-[11px] capitalize">
+          <span className="px-2.5 py-1 rounded border border-brand-mint/20 bg-brand-mint/10 text-brand-mint font-semibold text-[11px] capitalize">
             {request.status.replace(/_/g, " ").toLowerCase()}
           </span>
           <span className="text-[#a1a1aa]">{authorName}</span>
@@ -109,7 +109,7 @@ export function RequestDetail({ request, workspaceId }: { request: any, workspac
                   <button 
                     onClick={() => respondToDuplicate.mutate({ featureRequestId: request.id, action: "proceed" })}
                     disabled={respondToDuplicate.isPending}
-                    className="px-4 py-2 bg-[#1A1E29] hover:bg-[#27272a] transition-colors text-white text-[13px] font-medium rounded-lg disabled:opacity-50"
+                    className="px-4 py-2 bg-surface-elevated hover:bg-[#27272a] transition-colors text-white text-[13px] font-medium rounded-lg disabled:opacity-50"
                   >
                     Not a Duplicate (Proceed)
                   </button>
@@ -128,7 +128,7 @@ export function RequestDetail({ request, workspaceId }: { request: any, workspac
         )}
 
         {/* Original Request Box */}
-        <div className="bg-[#13161F] border border-[#27272a]/50 rounded-2xl p-6 mb-8 relative">
+        <div className="bg-surface-card border border-[#27272a]/50 rounded-2xl p-6 mb-8 relative">
           <div className="text-[10px] font-bold text-[#71717a] tracking-widest uppercase mb-4">
             Original Request
           </div>
@@ -140,7 +140,7 @@ export function RequestDetail({ request, workspaceId }: { request: any, workspac
         {/* AI Clarification Section */}
         <div className="mb-4 flex items-center gap-2">
           <h3 className="text-[15px] font-semibold text-white/90">AI Clarification</h3>
-          <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-wider">AI</span>
+          <span className="px-1.5 py-0.5 rounded bg-brand-mint/20 text-brand-mint text-[10px] font-bold uppercase tracking-wider">AI</span>
         </div>
 
         {/* Chat Interface */}
@@ -150,15 +150,15 @@ export function RequestDetail({ request, workspaceId }: { request: any, workspac
               <div key={msg.id} className={`flex flex-col gap-1 w-full ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                 <div className={`rounded-2xl p-5 max-w-[85%] ${
                   msg.role === 'user' 
-                    ? 'bg-[#1A1E29] rounded-tr-sm' 
-                    : 'bg-[#13161F] border border-amber-500/50 rounded-tl-sm'
+                    ? 'bg-surface-elevated rounded-tr-sm' 
+                    : 'bg-surface-card border border-amber-500/50 rounded-tl-sm'
                 }`}>
                   <p className="text-[14px] text-white/90 leading-relaxed whitespace-pre-wrap">
                     {msg.content}
                   </p>
                 </div>
                 <span className={`text-[11px] text-[#71717a] mt-1 ${msg.role === 'user' ? 'mr-1' : 'ml-1'}`}>
-                  {msg.role === 'user' ? authorName : 'ShipFlow AI'}
+                  {msg.role === 'user' ? authorName : 'The Wharf'}
                 </span>
               </div>
             ))
@@ -183,7 +183,7 @@ export function RequestDetail({ request, workspaceId }: { request: any, workspac
                       submitClarification.mutate({ featureRequestId: request.id, answers: clarificationText });
                     }
                   }}
-                  className="w-full bg-[#0A0D14] border border-[#27272a] rounded-xl py-3 pl-4 pr-24 text-[14px] text-white placeholder:text-[#52525b] focus:outline-none focus:border-blue-500/50 transition-colors disabled:opacity-50"
+                  className="w-full bg-surface-base border border-[#27272a] rounded-xl py-3 pl-4 pr-24 text-[14px] text-white placeholder:text-[#52525b] focus:outline-none focus:border-brand-mint/50 transition-colors disabled:opacity-50"
                 />
                 <button 
                   onClick={() => {
@@ -192,7 +192,7 @@ export function RequestDetail({ request, workspaceId }: { request: any, workspac
                     }
                   }}
                   disabled={submitClarification.isPending || !clarificationText.trim()}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:text-gray-300 text-white px-4 py-1.5 rounded-lg text-[13px] font-medium transition-colors flex items-center gap-2"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-brand-mint hover:bg-brand-mintHover text-brand-dark font-bold disabled:bg-brand-mint/50 disabled:text-brand-dark/50 px-4 py-1.5 rounded-lg text-[13px] font-medium transition-colors flex items-center gap-2"
                 >
                   {submitClarification.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
                   Send

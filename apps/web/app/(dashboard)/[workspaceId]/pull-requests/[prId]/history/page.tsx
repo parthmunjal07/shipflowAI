@@ -10,7 +10,7 @@ export default function ReviewHistoryPage({ params }: { params: Promise<{ worksp
 
   if (isLoading) {
     return (
-      <div className="flex-1 h-full bg-[#0A0D14] flex items-center justify-center">
+      <div className="flex-1 h-full bg-surface-base flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#71717a] animate-spin" />
       </div>
     );
@@ -18,7 +18,7 @@ export default function ReviewHistoryPage({ params }: { params: Promise<{ worksp
 
   if (isError || !pr) {
     return (
-      <div className="flex-1 h-full bg-[#0A0D14] flex items-center justify-center text-white">
+      <div className="flex-1 h-full bg-surface-base flex items-center justify-center text-white">
         Failed to load Pull Request History.
       </div>
     );
@@ -39,7 +39,7 @@ export default function ReviewHistoryPage({ params }: { params: Promise<{ worksp
   }
 
   return (
-    <div className="flex-1 h-full bg-[#0A0D14] overflow-y-auto">
+    <div className="flex-1 h-full bg-surface-base overflow-y-auto">
       <div className="max-w-4xl mx-auto w-full p-8 lg:p-12 pb-32">
         
         {/* Header */}
@@ -73,7 +73,7 @@ export default function ReviewHistoryPage({ params }: { params: Promise<{ worksp
             </div>
           </div>
           
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 transition-colors text-white text-[13px] font-bold rounded-lg shadow-sm shrink-0">
+          <button className="flex items-center gap-2 px-5 py-2.5 bg-brand-mint hover:bg-brand-mintHover text-brand-dark font-bold transition-colors text-white text-[13px] font-bold rounded-lg shadow-sm shrink-0">
             <Eye className="w-4 h-4" />
             Request Human Approval
           </button>
@@ -81,13 +81,13 @@ export default function ReviewHistoryPage({ params }: { params: Promise<{ worksp
 
         {/* Stats Row */}
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <StatCard title="REVIEW PASSES" value={totalPasses.toString()} valueColor="text-blue-500" />
+          <StatCard title="REVIEW PASSES" value={totalPasses.toString()} valueColor="text-brand-mint" />
           <StatCard title="ISSUES FOUND" value={totalIssuesFound.toString()} valueColor="text-red-500" />
           <StatCard title="ISSUES RESOLVED" value={totalIssuesResolved.toString()} valueColor="text-emerald-500" />
         </div>
 
         {/* Timeline Container */}
-        <div className="bg-[#13161F] border border-[#27272a]/50 rounded-2xl p-8 mb-8 relative">
+        <div className="bg-surface-card border border-[#27272a]/50 rounded-2xl p-8 mb-8 relative">
           
           {reviewRuns.length > 1 && (
             <div className="absolute top-[4.5rem] bottom-12 left-[41px] w-px bg-[#27272a]/50"></div>
@@ -102,7 +102,7 @@ export default function ReviewHistoryPage({ params }: { params: Promise<{ worksp
                 <div>
                   <h3 className="text-[16px] font-bold text-white mb-1">No review history yet</h3>
                   <p className="text-[14px] text-[#a1a1aa] mb-3">AI review will appear here after the first push to the linked branch.</p>
-                  <a href={pr.url} target="_blank" rel="noreferrer" className="text-[13px] font-medium text-blue-500 hover:text-blue-400 transition-colors">
+                  <a href={pr.url} target="_blank" rel="noreferrer" className="text-[13px] font-medium text-brand-mint hover:text-brand-mint transition-colors">
                     View PR on GitHub →
                   </a>
                 </div>
@@ -116,7 +116,7 @@ export default function ReviewHistoryPage({ params }: { params: Promise<{ worksp
                 let dotColorClass = "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]";
                 if (isLatest) {
                   if (run.issues.length === 0) dotColorClass = "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]";
-                  else dotColorClass = "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]";
+                  else dotColorClass = "bg-brand-mint text-brand-dark font-bold shadow-[0_0_8px_rgba(59,130,246,0.5)]";
                 }
 
                 // Group issues by category for the chart
@@ -134,7 +134,7 @@ export default function ReviewHistoryPage({ params }: { params: Promise<{ worksp
                         {new Date(run.createdAt).toLocaleString()} · triggered by push to {run.headSha ? run.headSha.substring(0, 7) : "branch"}
                       </p>
                       
-                      <div className="bg-[#1A1E29] rounded-xl border border-[#27272a]/50 p-6">
+                      <div className="bg-surface-elevated rounded-xl border border-[#27272a]/50 p-6">
                         {Object.keys(categoryCounts).length > 0 ? (
                           <>
                             <div className="flex items-end gap-6 h-24 mb-6 border-b border-[#27272a]/50 pb-2 overflow-x-auto">
@@ -180,7 +180,7 @@ export default function ReviewHistoryPage({ params }: { params: Promise<{ worksp
 // Reusable Stat Card Component
 function StatCard({ title, value, valueColor }: { title: string, value: string, valueColor: string }) {
   return (
-    <div className="bg-[#13161F] border border-[#27272a]/50 rounded-xl p-5">
+    <div className="bg-surface-card border border-[#27272a]/50 rounded-xl p-5">
       <h3 className="text-[11px] font-bold text-[#71717a] tracking-[0.2em] mb-2 uppercase">{title}</h3>
       <div className={`text-[32px] font-bold ${valueColor}`}>{value}</div>
     </div>

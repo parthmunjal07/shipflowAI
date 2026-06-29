@@ -7,7 +7,7 @@ export const generatePrd = inngest.createFunction(
     id: "generate-prd",
     name: "Generate Structured PRD",
   },
-  { event: "shipflow/feature-request.resolved" },
+  { event: "the-wharf/feature-request.resolved" },
   async ({ event, step }) => {
     const { featureRequestId } = event.data;
 

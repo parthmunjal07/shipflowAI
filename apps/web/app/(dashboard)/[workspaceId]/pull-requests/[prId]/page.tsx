@@ -15,7 +15,7 @@ export default function PRReviewPage({ params }: { params: Promise<{ workspaceId
 
   if (isLoading) {
     return (
-      <div className="flex-1 h-full bg-[#0A0D14] flex items-center justify-center">
+      <div className="flex-1 h-full bg-surface-base flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#71717a] animate-spin" />
       </div>
     );
@@ -23,7 +23,7 @@ export default function PRReviewPage({ params }: { params: Promise<{ workspaceId
 
   if (isError || !pr) {
     return (
-      <div className="flex-1 h-full bg-[#0A0D14] flex items-center justify-center text-white">
+      <div className="flex-1 h-full bg-surface-base flex items-center justify-center text-white">
         Failed to load Pull Request.
       </div>
     );
@@ -41,7 +41,7 @@ export default function PRReviewPage({ params }: { params: Promise<{ workspaceId
   const uniqueFiles = Array.from(new Set(issues.map((i) => i.filePath)));
 
   return (
-    <div className="flex flex-col h-full bg-[#0A0D14] overflow-hidden">
+    <div className="flex flex-col h-full bg-surface-base overflow-hidden">
       
       {/* Header */}
       <div className="px-8 py-6 border-b border-[#27272a]/50 shrink-0">
@@ -69,11 +69,11 @@ export default function PRReviewPage({ params }: { params: Promise<{ workspaceId
         
         <div className="flex items-center gap-4 text-[13px]">
           <span className="text-[#a1a1aa]">{pr.repository.fullName}</span>
-          <span className="px-2 py-0.5 rounded border border-blue-500/20 bg-blue-500/10 text-blue-400 font-semibold text-[11px]">
+          <span className="px-2 py-0.5 rounded border border-brand-mint/20 bg-brand-mint/10 text-brand-mint font-semibold text-[11px]">
             {pr.state}
           </span>
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-[9px] font-bold">
+            <div className="w-5 h-5 rounded-full bg-brand-mint flex items-center justify-center text-brand-dark font-bold text-[9px] font-bold">
               {pr.authorLogin.substring(0, 2).toUpperCase()}
             </div>
             <span className="text-white/90 font-medium">{pr.authorLogin}</span>
@@ -95,7 +95,7 @@ export default function PRReviewPage({ params }: { params: Promise<{ workspaceId
           <div>
             <h3 className="text-[15px] font-bold text-amber-500 mb-1">Awaiting Task Link</h3>
             <p className="text-[14px] text-amber-500/90 leading-relaxed">
-              This pull request does not have a linked ShipFlow Task. To trigger the automated AI review, please update your GitHub pull request description to include the task ID (e.g., <strong>SF-{pr.number}</strong> or whatever your task ID is) and the review will begin automatically.
+              This pull request does not have a linked The Wharf Task. To trigger the automated AI review, please update your GitHub pull request description to include the task ID (e.g., <strong>SF-{pr.number}</strong> or whatever your task ID is) and the review will begin automatically.
             </p>
           </div>
         </div>
@@ -105,16 +105,16 @@ export default function PRReviewPage({ params }: { params: Promise<{ workspaceId
       <div className="flex-1 flex overflow-hidden">
         
         {/* Left Column: Code Diff (Snippets) */}
-        <div className="flex-1 border-r border-[#27272a]/50 flex flex-col bg-[#0A0D14] overflow-hidden">
+        <div className="flex-1 border-r border-[#27272a]/50 flex flex-col bg-surface-base overflow-hidden">
           {uniqueFiles.length === 0 ? (
             <div className="flex-1 flex items-center justify-center text-[#71717a] text-[14px]">
               No issues found, so no snippets to display.
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto bg-[#0A0D14] font-mono text-[13px] leading-[1.6]">
+            <div className="flex-1 overflow-y-auto bg-surface-base font-mono text-[13px] leading-[1.6]">
               {uniqueFiles.map((file) => (
                 <div key={file} className="mb-8">
-                  <div className="flex items-center justify-between px-4 py-2 bg-[#13161F] border-y border-[#27272a]/50 shrink-0 sticky top-0 z-10">
+                  <div className="flex items-center justify-between px-4 py-2 bg-surface-card border-y border-[#27272a]/50 shrink-0 sticky top-0 z-10">
                     <div className="flex items-center gap-2 text-[#a1a1aa] text-[13px] font-mono">
                       <ChevronDown className="w-4 h-4" />
                       {file}
@@ -139,11 +139,11 @@ export default function PRReviewPage({ params }: { params: Promise<{ workspaceId
         </div>
 
         {/* Right Column: AI Review Comments */}
-        <div className="w-[480px] flex-shrink-0 flex flex-col bg-[#13161F] relative">
+        <div className="w-[480px] flex-shrink-0 flex flex-col bg-surface-card relative">
           
-          <div className="px-6 py-4 border-b border-[#27272a]/50 flex items-center justify-between shrink-0 bg-[#13161F] z-10">
+          <div className="px-6 py-4 border-b border-[#27272a]/50 flex items-center justify-between shrink-0 bg-surface-card z-10">
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-blue-500 fill-blue-500" />
+              <Zap className="w-4 h-4 text-brand-mint fill-brand-mint/50" />
               <h2 className="text-[15px] font-bold text-white">AI Review Comments</h2>
               <span className="px-1.5 py-0.5 bg-white/[0.05] text-[#a1a1aa] rounded text-[11px] font-bold">{issues.length}</span>
             </div>
@@ -171,7 +171,7 @@ export default function PRReviewPage({ params }: { params: Promise<{ workspaceId
           </div>
 
           {/* Sticky Action Footer */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 bg-[#13161F] border-t border-[#27272a]/50">
+          <div className="absolute bottom-0 left-0 right-0 p-6 bg-surface-card border-t border-[#27272a]/50">
             <div className="flex items-center gap-4 mb-2">
               <button className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#27272a]/50 text-[#71717a] rounded-lg text-[14px] font-bold cursor-not-allowed">
                 <CheckCircle2 className="w-4 h-4" />
@@ -273,7 +273,7 @@ function CommentCard({
   }
 
   return (
-    <div className={`bg-[#0A0D14] rounded-xl p-5 border ${resolved ? 'border-[#27272a]/30 opacity-70' : 'border-[#27272a]/50'}`}>
+    <div className={`bg-surface-base rounded-xl p-5 border ${resolved ? 'border-[#27272a]/30 opacity-70' : 'border-[#27272a]/50'}`}>
       <div className="flex items-center justify-between mb-4">
         <span className={`text-[10px] font-bold tracking-widest ${severityColor}`}>
           {severity}

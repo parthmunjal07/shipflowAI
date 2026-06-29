@@ -53,7 +53,7 @@ export default async function RequestTasksPage({
     // Generate some deterministic colors based on task ID for mockup purposes
     // (In a real app, this might come from tags or assignee colors)
     const colorClasses = [
-      { dot: "bg-red-500", avatar: "bg-blue-600" },
+      { dot: "bg-red-500", avatar: "bg-brand-mint text-brand-dark font-bold" },
       { dot: "bg-amber-500", avatar: "bg-[#27272a]" },
       { dot: "bg-[#52525b]", avatar: "bg-emerald-600" },
       { dot: "bg-purple-500", avatar: "bg-pink-600" },
@@ -73,7 +73,7 @@ export default async function RequestTasksPage({
   });
 
   return (
-    <div className="flex-1 h-full bg-[#0A0D14] overflow-y-auto">
+    <div className="flex-1 h-full bg-surface-base overflow-y-auto">
       <div className="max-w-6xl mx-auto w-full p-8 lg:p-12 pb-32">
         
         {/* Header */}
@@ -91,7 +91,7 @@ export default async function RequestTasksPage({
             </h1>
             <div className="text-[14px]">
               <span className="text-[#71717a]">Linked PRD: </span>
-              <Link href={`/${workspaceId}/requests?id=${requestId}`} className="text-blue-500 hover:text-blue-400 cursor-pointer transition-colors font-medium">
+              <Link href={`/${workspaceId}/requests?id=${requestId}`} className="text-brand-mint hover:text-brand-mint cursor-pointer transition-colors font-medium">
                 {featureRequest.title}
               </Link>
             </div>

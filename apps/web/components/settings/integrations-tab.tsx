@@ -35,7 +35,7 @@ export function IntegrationsTab({
 }) {
   return (
     <div className="flex flex-col gap-6">
-      <div className="bg-[#13161F] border border-[#27272a]/50 rounded-2xl p-6">
+      <div className="bg-surface-card border border-[#27272a]/50 rounded-2xl p-6">
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-white/[0.03] border border-[#27272a] flex items-center justify-center text-white">
@@ -68,16 +68,16 @@ export function IntegrationsTab({
                 Connected Account: <span className="text-white font-bold">{installation.accountName}</span>
               </h3>
               <a 
-                href={`https://github.com/apps/${process.env.NEXT_PUBLIC_GITHUB_APP_NAME || 'shipflow-local-dev'}/installations/new`}
+                href={`https://github.com/apps/${process.env.NEXT_PUBLIC_GITHUB_APP_NAME || 'the-wharf-local-dev'}/installations/new`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-[13px] text-blue-500 hover:text-blue-400 font-medium transition-colors"
+                className="text-[13px] text-brand-mint hover:text-brand-mint font-medium transition-colors"
               >
                 Configure in GitHub
               </a>
             </div>
 
-            <div className="flex flex-col divide-y divide-[#27272a]/50 border border-[#27272a]/50 rounded-xl overflow-hidden bg-[#0A0D14]">
+            <div className="flex flex-col divide-y divide-[#27272a]/50 border border-[#27272a]/50 rounded-xl overflow-hidden bg-surface-base">
               {installation.repositories.length === 0 ? (
                 <div className="p-8 text-center text-[13px] text-[#71717a]">
                   No repositories synced yet. Configure the app in GitHub to grant access.
@@ -97,7 +97,7 @@ export function IntegrationsTab({
         ) : (
           <div className="border-t border-[#27272a]/50 pt-6">
             <p className="text-[13px] text-[#a1a1aa] leading-relaxed max-w-2xl">
-              Connect your workspace to GitHub to automatically sync repositories, generate PRDs from issues, and have ShipFlow AI review your pull requests. You can selectively grant access to specific repositories.
+              Connect your workspace to GitHub to automatically sync repositories, generate PRDs from issues, and have The Wharf review your pull requests. You can selectively grant access to specific repositories.
             </p>
           </div>
         )}

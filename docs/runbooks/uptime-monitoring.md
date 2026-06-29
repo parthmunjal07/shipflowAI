@@ -1,6 +1,6 @@
 # Uptime Monitoring & Alerting Runbook
 
-To ensure ShipFlow AI remains highly available and that we are immediately notified of outages, we must configure synthetic monitoring.
+To ensure The Wharf remains highly available and that we are immediately notified of outages, we must configure synthetic monitoring.
 
 ## 1. The Health Endpoint
 
@@ -30,7 +30,7 @@ We recommend using BetterStack or UptimeRobot for synthetic monitoring.
 A monitor is useless if it doesn't wake someone up.
 
 1. Go to **On-Call & Escalation Policies**.
-2. Create a new policy: "ShipFlow Prod Outage".
+2. Create a new policy: "The Wharf Prod Outage".
 3. **Level 1 (Immediate):** Send a message to the `#alerts-prod` Slack channel.
 4. **Level 2 (After 5 minutes unacknowledged):** Send an automated Phone Call and SMS to the primary on-call engineer.
 5. Link this escalation policy to your `api/health` monitor.

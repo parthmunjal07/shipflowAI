@@ -1,10 +1,10 @@
 # Security & Data Handling Overview
 
-This document outlines how ShipFlow AI handles, isolates, and protects customer data. It is designed to provide transparency for security reviews and compliance audits.
+This document outlines how The Wharf handles, isolates, and protects customer data. It is designed to provide transparency for security reviews and compliance audits.
 
 ## 1. What Data We Store
 
-ShipFlow AI operates on a principle of **data minimization**. We only store the data strictly necessary to facilitate product planning, task generation, and automated pull request reviews.
+The Wharf operates on a principle of **data minimization**. We only store the data strictly necessary to facilitate product planning, task generation, and automated pull request reviews.
 
 ### Product Data
 - **Feature Requests**: Titles, descriptions, source metadata (e.g., ticket links), and AI clarification transcripts.
@@ -12,7 +12,7 @@ ShipFlow AI operates on a principle of **data minimization**. We only store the 
 - **Tasks**: Granular engineering tasks and assignment metadata.
 
 ### Source Code & GitHub Integration
-**ShipFlow AI DOES NOT store your source code.**
+**The Wharf DOES NOT store your source code.**
 - We store GitHub Installation IDs to request short-lived, scoped access tokens dynamically.
 - When a Pull Request is opened, we fetch the diff (patch) on the fly via the GitHub API and hold it in volatile memory during the AI analysis phase.
 - We store **PR Metadata** (Title, PR Number, Author, URL, Status).
@@ -26,7 +26,7 @@ ShipFlow AI operates on a principle of **data minimization**. We only store the 
 
 ## 2. How Data is Isolated
 
-ShipFlow AI is a multi-tenant SaaS application designed with strict tenant isolation protocols.
+The Wharf is a multi-tenant SaaS application designed with strict tenant isolation protocols.
 
 ### Logical Tenant Isolation
 Every customer is assigned an `Organization` (Tenant). All relational data (Projects, Feature Requests, Tasks, GitHub Installations) is strictly bound to an `organizationId`.
@@ -54,4 +54,4 @@ Our database schema is configured with strict `ON DELETE CASCADE` constraints.
 - If a customer deletes their organization, their data will be permanently irretrievable from our active database immediately, and fully expunged from all cold-storage backups after 30 days.
 
 ### GitHub Revocation
-- If a customer uninstalls the ShipFlow AI GitHub App via their GitHub settings, our webhook immediately processes an `installation_deleted` event and destroys the corresponding `GithubInstallation` record in our database, severing all future access.
+- If a customer uninstalls the The Wharf GitHub App via their GitHub settings, our webhook immediately processes an `installation_deleted` event and destroys the corresponding `GithubInstallation` record in our database, severing all future access.

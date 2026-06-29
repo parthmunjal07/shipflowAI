@@ -54,7 +54,7 @@ describe("Core Loop Integration", () => {
     expect(createRes.featureRequest).toBeDefined();
     expect(createRes.featureRequest.status).toBe("PENDING");
     expect(inngest.send).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "shipflow/feature-request.created" })
+      expect.objectContaining({ name: "the-wharf/feature-request.created" })
     );
 
     // 3. Simulate PRD Generation (Since we mocked Inngest, we do this manually)

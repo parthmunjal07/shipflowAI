@@ -3,32 +3,33 @@ import type { NextRequest } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-// Initialize Upstash Redis instance
-const redis = Redis.fromEnv();
+// Initialize Upstash Redis instance (optional for local dev)
+const hasRedis = !!process.env.UPSTASH_REDIS_REST_URL;
+const redis = hasRedis ? Redis.fromEnv() : null;
 
 // Webhook rate limiter (fairly generous, 100 requests per minute per IP)
-const webhookLimiter = new Ratelimit({
-  redis,
+const webhookLimiter = hasRedis ? new Ratelimit({
+  redis: redis!,
   limiter: Ratelimit.slidingWindow(100, "1 m"),
   analytics: true,
   prefix: "ratelimit:webhook",
-});
+}) : null;
 
 // Strict rate limiter for public unauthenticated endpoints (e.g. intake forms)
 // 5 requests per minute per IP
-const publicStrictLimiter = new Ratelimit({
-  redis,
+const publicStrictLimiter = hasRedis ? new Ratelimit({
+  redis: redis!,
   limiter: Ratelimit.slidingWindow(5, "1 m"),
   analytics: true,
   prefix: "ratelimit:public",
-});
+}) : null;
 
 export async function middleware(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") ?? "127.0.0.1";
   const path = request.nextUrl.pathname;
 
   // Rate limit Webhooks
-  if (path.startsWith("/api/webhooks/")) {
+  if (webhookLimiter && path.startsWith("/api/webhooks/")) {
     const { success, limit, reset, remaining } = await webhookLimiter.limit(ip);
     
     if (!success) {
@@ -46,7 +47,7 @@ export async function middleware(request: NextRequest) {
 
   // Rate limit TRPC public intake procedures
   // The tRPC URL for the intake mutation looks like: /api/trpc/featureRequest.create
-  if (path.includes("featureRequest.create")) {
+  if (publicStrictLimiter && path.includes("featureRequest.create")) {
     const { success, limit, reset, remaining } = await publicStrictLimiter.limit(ip);
     
     if (!success) {
